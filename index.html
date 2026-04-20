@@ -619,9 +619,9 @@
                 this.settings[type] = !active;
             },
 
-            // 判断乘法是否有进位：两位数的个位数 × 一位数 ≥ 10，需要向十位进位
+            // 判断乘法是否有进位：两位数的个位数 × 一位数 > 10，需要向十位进位
             hasCarry(a, b) {
-                return (a % 10) * b >= 10;
+                return (a % 10) * b > 10;
             },
 
             generateProblem() {
