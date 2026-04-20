@@ -619,15 +619,9 @@
                 this.settings[type] = !active;
             },
 
-            // 判断乘法是否有进位
+            // 判断乘法是否有进位：两位数的个位数 × 一位数 ≥ 10，需要向十位进位
             hasCarry(a, b) {
-                // 个位相乘是否有进位
-                const unitCarry = (a % 10) * b >= 10;
-                // 十位相乘加上个位进位后，是否还需要向百位进位
-                const tenProduct = Math.floor(a / 10) * b + Math.floor((a % 10) * b / 10);
-                const tenCarry = tenProduct >= 10;
-                
-                return unitCarry || tenCarry;
+                return (a % 10) * b >= 10;
             },
 
             generateProblem() {
