@@ -290,6 +290,60 @@
             font-size: 16px;
         }
 
+        /* 数字键盘 */
+        .num-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 280px;
+            margin: 20px auto 0;
+        }
+
+        .num-btn {
+            padding: 16px;
+            font-size: 22px;
+            font-weight: 600;
+            border: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+            -webkit-user-select: none;
+            color: #1a1a2e;
+        }
+
+        .num-btn:active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+            transform: scale(0.96);
+        }
+
+        .num-btn.func {
+            background: #fff3e0;
+            border-color: #ffe0b2;
+            color: #e65100;
+        }
+
+        .num-btn.func:active {
+            background: #e65100;
+            color: white;
+            border-color: #e65100;
+        }
+
+        .num-btn.submit-btn {
+            background: #e8f8f0;
+            border-color: #a5d6a7;
+            color: #27ae60;
+        }
+
+        .num-btn.submit-btn:active {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-10px); }
@@ -347,15 +401,33 @@
             <div class="problem-area">
                 <div class="problem" id="problem">-- × -</div>
                 <input
-                    type="number"
+                    type="text"
                     class="answer-input"
                     id="answerInput"
                     placeholder="?"
                     autocomplete="off"
+                    inputmode="numeric"
+                    readonly
                 >
             </div>
 
             <div class="feedback" id="feedback"></div>
+
+            <div class="num-pad" id="numPad">
+                <button class="num-btn" onclick="app.numInput('1')">1</button>
+                <button class="num-btn" onclick="app.numInput('2')">2</button>
+                <button class="num-btn" onclick="app.numInput('3')">3</button>
+                <button class="num-btn" onclick="app.numInput('4')">4</button>
+                <button class="num-btn" onclick="app.numInput('5')">5</button>
+                <button class="num-btn" onclick="app.numInput('6')">6</button>
+                <button class="num-btn" onclick="app.numInput('7')">7</button>
+                <button class="num-btn" onclick="app.numInput('8')">8</button>
+                <button class="num-btn" onclick="app.numInput('9')">9</button>
+                <button class="num-btn func" onclick="app.numClear()">C</button>
+                <button class="num-btn" onclick="app.numInput('0')">0</button>
+                <button class="num-btn func" onclick="app.numBackspace()">←</button>
+                <button class="num-btn submit-btn" style="grid-column: span 3;" onclick="app.submit()">提交</button>
+            </div>
         </div>
 
         <!-- 结果界面 -->
@@ -404,13 +476,14 @@
             </div>
         </div>
 
-        <!-- 设置 -->
+        <!-- 说明 -->
         <div class="settings" id="globalSettings">
-            <div class="settings-title">难度筛选（优先出以下类型）</div>
-            <div class="toggle-group">
-                <button class="toggle-btn active" onclick="app.toggleSetting(this, 'carry')">有进位</button>
-                <button class="toggle-btn" onclick="app.toggleSetting(this, 'nocarry')">无进位</button>
-            </div>
+            <div class="settings-title">练习说明</div>
+            <p style="font-size:13px; color:#888; line-height:1.6;">
+                所有题目均为<strong>有进位</strong>的乘法练习，<br>
+                即两位数的个位数乘以一位数后结果 > 10。<br>
+                建议每题控制在 <strong>2 秒</strong>以内完成。
+            </p>
         </div>
     </div>
 
@@ -462,35 +535,17 @@
                 clearInterval(this.timerInterval);
             },
 
-            toggleSetting(btn, type) {
-                const active = btn.classList.contains('active');
-                if (active && Object.values(this.settings).filter(v => v).length === 1) return;
-                btn.classList.toggle('active');
-                this.settings[type] = !active;
-            },
-
             // 判断乘法是否有进位：两位数的个位数 × 一位数 > 10，需要向十位进位
             hasCarry(a, b) {
                 return (a % 10) * b > 10;
             },
 
             generateProblem() {
-                const preferCarry = this.settings.carry && !this.settings.nocarry;
-                const preferNoCarry = !this.settings.carry && this.settings.nocarry;
-
                 let problems = [];
                 for (let a = 10; a <= 99; a++) {
                     for (let b = 2; b <= 9; b++) {
-                        const carry = this.hasCarry(a, b);
-                        if (preferCarry && !carry) continue;
-                        if (preferNoCarry && carry) continue;
-                        problems.push({ a, b, answer: a * b, carry });
-                    }
-                }
-                if (problems.length === 0) {
-                    for (let a = 10; a <= 99; a++) {
-                        for (let b = 2; b <= 9; b++) {
-                            problems.push({ a, b, answer: a * b, carry: this.hasCarry(a, b) });
+                        if (this.hasCarry(a, b)) {
+                            problems.push({ a, b, answer: a * b });
                         }
                     }
                 }
@@ -512,6 +567,12 @@
                 input.className = 'answer-input';
                 input.focus();
 
+                // 重新启用数字键盘
+                document.querySelectorAll('.num-btn').forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                });
+
                 document.getElementById('feedback').textContent = '';
 
                 this.startTime = Date.now();
@@ -520,6 +581,21 @@
                     const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
                     document.getElementById('statTime').textContent = elapsed + 's';
                 }, 1000);
+            },
+
+            numInput(num) {
+                const input = document.getElementById('answerInput');
+                if (input.value.length >= 4) return; // 最多4位数字
+                input.value += num;
+            },
+
+            numClear() {
+                document.getElementById('answerInput').value = '';
+            },
+
+            numBackspace() {
+                const input = document.getElementById('answerInput');
+                input.value = input.value.slice(0, -1);
             },
 
             submit() {
@@ -540,6 +616,12 @@
                 input.className = 'answer-input ' + (correct ? 'correct' : 'wrong');
                 const feedback = document.getElementById('feedback');
                 feedback.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+
+                // 禁用数字键盘
+                document.querySelectorAll('.num-btn').forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                });
 
                 if (correct) {
                     feedback.textContent = '✓ 正确';
