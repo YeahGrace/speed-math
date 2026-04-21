@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <title>速算练习 - 两位数乘一位数</title>
+    <title>速算练习</title>
     <style>
         :root {
             --bg: #f5f7fa;
@@ -214,6 +214,9 @@
             font-size: 20px;
             font-weight: bold;
             color: var(--text);
+            font-variant-numeric: tabular-nums;
+            min-width: 56px;
+            display: inline-block;
         }
 
         .stat-label {
@@ -535,11 +538,11 @@
                 <h1>速算练习</h1>
                 <button class="theme-toggle" id="themeBtn" onclick="app.toggleTheme()" title="切换主题">☀️</button>
             </div>
-            <p class="subtitle">乘法进位强化</p>
+            <p class="subtitle" id="subtitleText">乘法进位强化</p>
 
             <!-- 开始界面 -->
             <div id="startScreen" class="start-screen">
-                <p>
+                <p id="startDesc">
                     所有题目均为<strong>有进位</strong>的乘法题目，<br>
                     帮助你强化速算中最容易出错的环节。
                 </p>
@@ -547,8 +550,10 @@
                 <div class="settings" style="margin-top:0; padding-top:0; border-top:none; margin-bottom:16px;">
                     <div class="settings-title">选择题型</div>
                     <div class="toggle-group" id="modeGroup">
-                        <button class="toggle-btn active" onclick="app.selectMode(this, 'two')">两位数 × 一位数</button>
-                        <button class="toggle-btn" onclick="app.selectMode(this, 'three')">三位数 × 一位数</button>
+                        <button class="toggle-btn active" onclick="app.selectMode(this, 'two')">两位数×一位数</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'three')">三位数×一位数</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'div2')">三位数÷两位数</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'div1')">三位数÷一位数</button>
                     </div>
                 </div>
 
@@ -567,7 +572,7 @@
 
                 <div class="settings" id="globalSettings">
                     <div class="settings-title">练习说明</div>
-                    <p style="font-size:12px; color:var(--text-secondary); line-height:1.5;">
+                    <p style="font-size:12px; color:var(--text-secondary); line-height:1.5;" id="modeDesc">
                         个位数乘以一位数结果 <strong>&gt; 10</strong> 且 <strong>不等于整十数</strong>。<br>
                         建议每题控制在 <strong>2 秒</strong>以内完成。
                     </p>
@@ -657,24 +662,22 @@
         <!-- 数字键盘 -->
         <div class="keyboard-wrapper" id="keyboardWrapper" style="display:none;">
             <div class="num-pad" id="numPad">
-                <button class="num-btn func" onclick="app.restart()" title="重开">↺</button>
-                <button class="num-btn func" onclick="app.numClear()">C</button>
-                <button class="num-btn func" onclick="app.numBackspace()">←</button>
-                <button class="num-btn func" onclick="app.numToggleSign()">±</button>
                 <button class="num-btn" onclick="app.numInput('7')">7</button>
                 <button class="num-btn" onclick="app.numInput('8')">8</button>
                 <button class="num-btn" onclick="app.numInput('9')">9</button>
-                <button class="num-btn func" onclick="app.numDot()">.</button>
+                <button class="num-btn func" onclick="app.restart()" title="重开">↺</button>
                 <button class="num-btn" onclick="app.numInput('4')">4</button>
                 <button class="num-btn" onclick="app.numInput('5')">5</button>
                 <button class="num-btn" onclick="app.numInput('6')">6</button>
-                <button class="num-btn" onclick="app.numInput('')" style="visibility:hidden;"></button>
+                <button class="num-btn func" onclick="app.numClear()">C</button>
                 <button class="num-btn" onclick="app.numInput('1')">1</button>
                 <button class="num-btn" onclick="app.numInput('2')">2</button>
                 <button class="num-btn" onclick="app.numInput('3')">3</button>
-                <button class="num-btn" onclick="app.numInput('')" style="visibility:hidden;"></button>
-                <button class="num-btn span2" onclick="app.numInput('0')">0</button>
-                <button class="num-btn submit-btn span2" onclick="app.submit()">提交</button>
+                <button class="num-btn func" onclick="app.numBackspace()">←</button>
+                <button class="num-btn" onclick="app.numInput('0')">0</button>
+                <button class="num-btn" onclick="app.numDot()">.</button>
+                <button class="num-btn" onclick="app.numToggleSign()">±</button>
+                <button class="num-btn submit-btn" onclick="app.submit()">提交</button>
             </div>
         </div>
     </div>
@@ -689,13 +692,32 @@
 
         const THEME_KEY = 'speed_math_theme';
 
+        const MODE_DESC = {
+            two: {
+                title: '乘法进位强化',
+                desc: '个位数乘以一位数结果 <strong>&gt; 10</strong> 且 <strong>不等于整十数</strong>，总乘积 <strong>&gt; 100</strong>。<br>建议每题控制在 <strong>2 秒</strong>以内完成。',
+            },
+            three: {
+                title: '三位数乘法进位',
+                desc: '个位数乘以一位数结果 <strong>&gt; 10</strong> 且 <strong>不等于整十数</strong>。<br>建议每题控制在 <strong>3 秒</strong>以内完成。',
+            },
+            div2: {
+                title: '三位数÷两位数',
+                desc: '正确答案精确到小数点后两位（四舍五入）。<br>你的答案与正确答案误差 <strong>&lt; 3%</strong> 即为正确。',
+            },
+            div1: {
+                title: '三位数÷一位数',
+                desc: '正确答案精确到小数点后两位（四舍五入）。<br>你的答案与正确答案误差 <strong>&lt; 1%</strong> 即为正确。',
+            },
+        };
+
         const app = {
             currentProblem: null,
             stats: { total: 0, correct: 0 },
             problemStartTime: 0,
             sessionStartTime: 0,
+            pausedTime: 0,
             totalTimerInterval: null,
-            settings: { carry: true, nocarry: false },
             mode: 'two',
             questionCount: 10,
             history: [],
@@ -727,6 +749,14 @@
                 document.querySelectorAll('#modeGroup .toggle-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.mode = mode;
+                const info = MODE_DESC[mode];
+                document.getElementById('subtitleText').textContent = info.title;
+                document.getElementById('modeDesc').innerHTML = info.desc;
+                if (mode.startsWith('div')) {
+                    document.getElementById('startDesc').innerHTML = '除法速算练习，<br>帮助你提升除法估算能力。';
+                } else {
+                    document.getElementById('startDesc').innerHTML = '所有题目均为<strong>有进位</strong>的乘法题目，<br>帮助你强化速算中最容易出错的环节。';
+                }
             },
 
             selectCount(btn, count) {
@@ -745,6 +775,7 @@
                 this.stats = { total: 0, correct: 0 };
                 this.history = [];
                 this.sessionStartTime = performance.now();
+                this.pausedTime = 0;
                 this.updateStats();
                 this.nextProblem();
                 this.startTotalTimer();
@@ -754,6 +785,7 @@
                 this.stats = { total: 0, correct: 0 };
                 this.history = [];
                 this.sessionStartTime = performance.now();
+                this.pausedTime = 0;
                 this.updateStats();
                 this.nextProblem();
                 this.startTotalTimer();
@@ -771,9 +803,20 @@
             startTotalTimer() {
                 clearInterval(this.totalTimerInterval);
                 this.totalTimerInterval = setInterval(() => {
-                    const elapsed = (performance.now() - this.sessionStartTime) / 1000;
+                    const elapsed = (performance.now() - this.sessionStartTime - this.pausedTime) / 1000;
                     document.getElementById('statTotalTime').textContent = elapsed.toFixed(1) + 's';
                 }, 100);
+            },
+
+            pauseTotalTimer() {
+                this.pauseStart = performance.now();
+            },
+
+            resumeTotalTimer() {
+                if (this.pauseStart) {
+                    this.pausedTime += performance.now() - this.pauseStart;
+                    this.pauseStart = 0;
+                }
             },
 
             // 个位数 × 一位数 > 10 且不等于整十数
@@ -784,6 +827,36 @@
 
             generateProblem() {
                 const isThreeDigit = this.mode === 'three';
+                const isDiv2 = this.mode === 'div2';
+                const isDiv1 = this.mode === 'div1';
+
+                if (isDiv2) {
+                    let problems = [];
+                    for (let a = 100; a <= 999; a++) {
+                        for (let b = 10; b <= 99; b++) {
+                            if (a <= b) continue;
+                            const raw = a / b;
+                            const rounded = Math.round(raw * 100) / 100;
+                            if (Math.abs(raw - rounded) < 0.001) continue;
+                            problems.push({ a, b, answer: rounded, op: '÷' });
+                        }
+                    }
+                    return problems[Math.floor(Math.random() * problems.length)];
+                }
+
+                if (isDiv1) {
+                    let problems = [];
+                    for (let a = 100; a <= 999; a++) {
+                        for (let b = 2; b <= 9; b++) {
+                            const raw = a / b;
+                            const rounded = Math.round(raw * 100) / 100;
+                            if (Math.abs(raw - rounded) < 0.001) continue;
+                            problems.push({ a, b, answer: rounded, op: '÷' });
+                        }
+                    }
+                    return problems[Math.floor(Math.random() * problems.length)];
+                }
+
                 const minA = isThreeDigit ? 100 : 10;
                 const maxA = isThreeDigit ? 999 : 99;
 
@@ -792,7 +865,7 @@
                     for (let b = 2; b <= 9; b++) {
                         if (!this.hasCarry(a, b)) continue;
                         if (!isThreeDigit && a * b <= 100) continue;
-                        problems.push({ a, b, answer: a * b });
+                        problems.push({ a, b, answer: a * b, op: '×' });
                     }
                 }
                 return problems[Math.floor(Math.random() * problems.length)];
@@ -805,8 +878,9 @@
                 }
 
                 this.currentProblem = this.generateProblem();
+                const op = this.currentProblem.op || '×';
                 document.getElementById('problem').textContent =
-                    `${this.currentProblem.a} × ${this.currentProblem.b}`;
+                    `${this.currentProblem.a} ${op} ${this.currentProblem.b}`;
 
                 const input = document.getElementById('answerInput');
                 input.value = '';
@@ -820,11 +894,12 @@
 
                 document.getElementById('feedback').textContent = '';
                 this.problemStartTime = performance.now();
+                this.resumeTotalTimer();
             },
 
             numInput(num) {
                 const input = document.getElementById('answerInput');
-                if (input.value.length >= 6) return;
+                if (input.value.length >= 8) return;
                 input.value += num;
             },
 
@@ -862,7 +937,15 @@
                 const problemTimeMs = performance.now() - this.problemStartTime;
                 const problemTimeSec = problemTimeMs / 1000;
 
-                const correct = Math.abs(userAnswer - this.currentProblem.answer) < 0.0001;
+                const isDiv = this.mode.startsWith('div');
+                let correct;
+                if (isDiv) {
+                    const err = Math.abs(userAnswer - this.currentProblem.answer) / this.currentProblem.answer;
+                    const threshold = this.mode === 'div2' ? 0.03 : 0.01;
+                    correct = err < threshold;
+                } else {
+                    correct = Math.abs(userAnswer - this.currentProblem.answer) < 0.0001;
+                }
 
                 this.stats.total++;
                 if (correct) this.stats.correct++;
@@ -879,14 +962,18 @@
                 if (correct) {
                     feedback.textContent = '✓ 正确';
                 } else {
-                    feedback.textContent = `✗ 正确答案：${this.currentProblem.answer}`;
+                    if (isDiv) {
+                        feedback.textContent = `✗ 正确答案：${this.currentProblem.answer}`;
+                    } else {
+                        feedback.textContent = `✗ 正确答案：${this.currentProblem.answer}`;
+                    }
                     input.classList.add('shake');
                     setTimeout(() => input.classList.remove('shake'), 300);
                 }
 
                 this.history.push({
                     idx: this.stats.total,
-                    problem: `${this.currentProblem.a} × ${this.currentProblem.b}`,
+                    problem: `${this.currentProblem.a} ${this.currentProblem.op || '×'} ${this.currentProblem.b}`,
                     userAnswer,
                     correct,
                     answer: this.currentProblem.answer,
@@ -894,11 +981,13 @@
                 });
                 this.updateStats();
 
+                this.pauseTotalTimer();
+
                 if (this.stats.total >= this.questionCount) {
                     clearInterval(this.totalTimerInterval);
-                    setTimeout(() => this.showResult(), correct ? 800 : 1500);
+                    setTimeout(() => this.showResult(), 500);
                 } else {
-                    setTimeout(() => this.nextProblem(), correct ? 800 : 1500);
+                    setTimeout(() => this.nextProblem(), 500);
                 }
             },
 
@@ -907,7 +996,7 @@
                 document.getElementById('resultScreen').classList.remove('hidden');
                 document.getElementById('keyboardWrapper').style.display = 'none';
 
-                const totalTimeSec = (performance.now() - this.sessionStartTime) / 1000;
+                const totalTimeSec = (performance.now() - this.sessionStartTime - this.pausedTime) / 1000;
                 const wrongCount = this.questionCount - this.stats.correct;
                 const accuracy = Math.round(this.stats.correct / this.questionCount * 100);
 
@@ -919,8 +1008,15 @@
                 const mins = Math.floor(totalTimeSec / 60);
                 const secs = totalTimeSec % 60;
                 const timeStr = mins > 0 ? `${mins}分${secs.toFixed(1)}秒` : `${secs.toFixed(1)}秒`;
+
+                const modeNames = {
+                    two: '两位数×一位数',
+                    three: '三位数×一位数',
+                    div2: '三位数÷两位数',
+                    div1: '三位数÷一位数',
+                };
                 document.getElementById('resultSummary').textContent =
-                    `本次${this.mode === 'three' ? '三位数' : '两位数'}练习 ${this.questionCount} 题，总用时 ${timeStr}`;
+                    `本次${modeNames[this.mode]}练习 ${this.questionCount} 题，总用时 ${timeStr}`;
 
                 const tbody = document.getElementById('resultTableBody');
                 tbody.innerHTML = this.history.map(h => `
