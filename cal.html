@@ -123,7 +123,7 @@
             }
 
             .problem {
-                font-size: 36px;
+                font-size: 32px;
                 margin-bottom: 8px;
             }
 
@@ -146,8 +146,8 @@
             }
 
             .num-btn {
-                padding: 10px 4px;
-                font-size: 16px;
+                padding: 14px 4px;
+                font-size: 18px;
                 border-radius: 8px;
             }
         }
@@ -181,6 +181,30 @@
         }
 
         .theme-toggle:active {
+            transform: translateY(-50%) scale(0.92);
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text);
+            background: var(--toggle-bg);
+            transition: all 0.2s;
+        }
+
+        .back-btn:active {
             transform: translateY(-50%) scale(0.92);
         }
 
@@ -700,6 +724,7 @@
     <div class="container">
         <div class="scrollable" id="mainContent">
             <div class="header-row">
+                <button class="back-btn hidden" id="backBtn" onclick="app.backToStart()" title="返回">←</button>
                 <h1>速算练习</h1>
                 <button class="theme-toggle" id="themeBtn" onclick="app.toggleTheme()" title="切换主题">☀️</button>
             </div>
@@ -747,11 +772,6 @@
 
             <!-- 练习界面 -->
             <div id="gameScreen" class="hidden">
-                <div class="game-toolbar">
-                    <button class="toolbar-btn" onclick="app.backToStart()" title="返回">←</button>
-                    <div class="toolbar-spacer"></div>
-                </div>
-
                 <div class="stats">
                     <div class="stat-item">
                         <div class="stat-value" id="statCount">0/10</div>
@@ -906,7 +926,7 @@
 
         const MODE_DESC = {
             two: {
-                title: '乘法进位强化',
+                title: '两位数乘法进位',
                 desc: '个位数乘以一位数结果 <strong>&gt; 10</strong> 且 <strong>不等于整十数</strong>，总乘积 <strong>&gt; 100</strong>。<br>建议每题控制在 <strong>2 秒</strong>以内完成。',
             },
             three: {
@@ -936,6 +956,7 @@
             mode: 'two',
             questionCount: 10,
             history: [],
+            usedKeys: new Set(),
             sumCount: 3,
             sumDigits: 3,
             hwStrokes: [],
@@ -1025,7 +1046,9 @@
 
                 this.stats = { total: 0, correct: 0 };
                 this.history = [];
+                this.usedKeys.clear();
                 this.sessionStartTime = performance.now();
+                document.getElementById('backBtn').classList.remove('hidden');
                 this.updateStats();
                 this.nextProblem();
                 this.startTotalTimer();
@@ -1034,7 +1057,9 @@
             restart() {
                 this.stats = { total: 0, correct: 0 };
                 this.history = [];
+                this.usedKeys.clear();
                 this.sessionStartTime = performance.now();
+                document.getElementById('backBtn').classList.remove('hidden');
                 this.updateStats();
                 this.nextProblem();
                 this.startTotalTimer();
@@ -1045,6 +1070,7 @@
                 document.getElementById('gameScreen').classList.add('hidden');
                 document.getElementById('startScreen').classList.remove('hidden');
                 document.getElementById('globalSettings').classList.remove('hidden');
+                document.getElementById('backBtn').classList.add('hidden');
                 document.getElementById('keyboardWrapper').style.display = 'none';
                 clearInterval(this.totalTimerInterval);
             },
@@ -1069,14 +1095,24 @@
                 const isSum = this.mode === 'sum';
 
                 if (isSum) {
-                    const numbers = [];
                     const min = Math.pow(10, this.sumDigits - 1);
                     const max = Math.pow(10, this.sumDigits) - 1;
-                    for (let i = 0; i < this.sumCount; i++) {
-                        numbers.push(Math.floor(Math.random() * (max - min + 1)) + min);
+                    let attempts = 0;
+                    while (attempts < 100) {
+                        const numbers = [];
+                        for (let i = 0; i < this.sumCount; i++) {
+                            numbers.push(Math.floor(Math.random() * (max - min + 1)) + min);
+                        }
+                        const key = numbers.slice().sort((a, b) => a - b).join('+');
+                        if (!this.usedKeys.has(key)) {
+                            this.usedKeys.add(key);
+                            const answer = numbers.reduce((s, n) => s + n, 0);
+                            return { numbers, answer, op: '+' };
+                        }
+                        attempts++;
                     }
-                    const answer = numbers.reduce((s, n) => s + n, 0);
-                    return { numbers, answer, op: '+' };
+                    this.usedKeys.clear();
+                    return this.generateProblem();
                 }
 
                 if (isDiv2) {
@@ -1087,10 +1123,18 @@
                             const raw = a / b;
                             const rounded = Math.round(raw * 100) / 100;
                             if (Math.abs(raw - rounded) < 0.001) continue;
+                            const key = `${a}÷${b}`;
+                            if (this.usedKeys.has(key)) continue;
                             problems.push({ a, b, answer: rounded, op: '÷' });
                         }
                     }
-                    return problems[Math.floor(Math.random() * problems.length)];
+                    if (problems.length === 0) {
+                        this.usedKeys.clear();
+                        return this.generateProblem();
+                    }
+                    const p = problems[Math.floor(Math.random() * problems.length)];
+                    this.usedKeys.add(`${p.a}÷${p.b}`);
+                    return p;
                 }
 
                 if (isDiv1) {
@@ -1100,10 +1144,18 @@
                             const raw = a / b;
                             const rounded = Math.round(raw * 100) / 100;
                             if (Math.abs(raw - rounded) < 0.001) continue;
+                            const key = `${a}÷${b}`;
+                            if (this.usedKeys.has(key)) continue;
                             problems.push({ a, b, answer: rounded, op: '÷' });
                         }
                     }
-                    return problems[Math.floor(Math.random() * problems.length)];
+                    if (problems.length === 0) {
+                        this.usedKeys.clear();
+                        return this.generateProblem();
+                    }
+                    const p = problems[Math.floor(Math.random() * problems.length)];
+                    this.usedKeys.add(`${p.a}÷${p.b}`);
+                    return p;
                 }
 
                 const minA = isThreeDigit ? 100 : 10;
@@ -1114,10 +1166,18 @@
                     for (let b = 2; b <= 9; b++) {
                         if (!this.hasCarry(a, b)) continue;
                         if (!isThreeDigit && a * b <= 100) continue;
+                        const key = `${a}×${b}`;
+                        if (this.usedKeys.has(key)) continue;
                         problems.push({ a, b, answer: a * b, op: '×' });
                     }
                 }
-                return problems[Math.floor(Math.random() * problems.length)];
+                if (problems.length === 0) {
+                    this.usedKeys.clear();
+                    return this.generateProblem();
+                }
+                const p = problems[Math.floor(Math.random() * problems.length)];
+                this.usedKeys.add(`${p.a}×${p.b}`);
+                return p;
             },
 
             nextProblem() {
@@ -1131,9 +1191,11 @@
 
                 if (this.mode === 'sum') {
                     el.className = 'problem-sum';
-                    el.innerHTML = this.currentProblem.numbers.map((n, i) =>
-                        `<div>${n}${i < this.currentProblem.numbers.length - 1 ? ' +' : ''}</div>`
-                    ).join('') + '<div style="border-top:2px solid var(--text);margin-top:4px;padding-top:4px;">?</div>';
+                    const nums = this.currentProblem.numbers;
+                    const lastIdx = nums.length - 1;
+                    el.innerHTML = nums.map((n, i) =>
+                        `<div>${i === lastIdx ? '+' : '\u00A0'}${n}</div>`
+                    ).join('') + '<div style="border-top:2px solid var(--text);margin-top:4px;padding-top:4px;"></div>';
                 } else {
                     el.className = 'problem';
                     el.textContent = `${this.currentProblem.a} ${this.currentProblem.op || '×'} ${this.currentProblem.b}`;
@@ -1253,6 +1315,7 @@
             showResult() {
                 document.getElementById('gameScreen').classList.add('hidden');
                 document.getElementById('resultScreen').classList.remove('hidden');
+                document.getElementById('backBtn').classList.add('hidden');
                 document.getElementById('keyboardWrapper').style.display = 'none';
 
                 const totalTimeSec = (performance.now() - this.sessionStartTime) / 1000;
