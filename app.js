@@ -460,6 +460,9 @@ const app = {
         const canvas = document.getElementById('handwritingCanvas');
         overlay.classList.add('active');
         document.getElementById('keyboardWrapper').classList.add('hidden');
+        document.getElementById('hwClearBtn').classList.remove('hidden');
+        document.getElementById('hwUndoBtn').classList.remove('hidden');
+        document.getElementById('hwCloseBtn').classList.remove('hidden');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         this.hwCtx = canvas.getContext('2d');
@@ -536,10 +539,66 @@ const app = {
         document.getElementById('handwritingOverlay').classList.remove('active');
         this.hwStrokes = [];
         this.hwCurrentStroke = null;
+        document.getElementById('hwClearBtn').classList.add('hidden');
+        document.getElementById('hwUndoBtn').classList.add('hidden');
+        document.getElementById('hwCloseBtn').classList.add('hidden');
         if (!document.getElementById('gameScreen').classList.contains('hidden')) {
             document.getElementById('keyboardWrapper').classList.remove('hidden');
         }
     },
+
+    initKeyboardResize() {
+        const handle = document.getElementById('dragHandle');
+        const wrapper = document.getElementById('keyboardWrapper');
+        if (!handle || !wrapper) return;
+
+        let startY = 0;
+        let startGap = 6;
+        let startBtnPad = 14;
+        let startFont = 20;
+        let startMinH = 48;
+
+        const onStart = (e) => {
+            e.preventDefault();
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            startY = clientY;
+            const style = getComputedStyle(wrapper);
+            startGap = parseFloat(style.getPropertyValue('--pad-gap')) || 6;
+            startBtnPad = parseFloat(style.getPropertyValue('--btn-padding').split(' ')[0]) || 14;
+            startFont = parseFloat(style.getPropertyValue('--btn-font-size')) || 20;
+            startMinH = parseFloat(style.getPropertyValue('--btn-min-height')) || 48;
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd);
+        };
+
+        const onMove = (e) => {
+            e.preventDefault();
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const delta = clientY - startY;
+            const factor = delta / 80;
+            const newGap = Math.max(2, Math.min(16, startGap + factor * 4));
+            const newBtnPad = Math.max(6, Math.min(32, startBtnPad + factor * 8));
+            const newFont = Math.max(14, Math.min(34, startFont + factor * 6));
+            const newMinH = Math.max(36, Math.min(80, startMinH + factor * 12));
+            wrapper.style.setProperty('--pad-gap', newGap + 'px');
+            wrapper.style.setProperty('--btn-padding', newBtnPad + 'px 4px');
+            wrapper.style.setProperty('--btn-font-size', newFont + 'px');
+            wrapper.style.setProperty('--btn-min-height', newMinH + 'px');
+        };
+
+        const onEnd = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+        };
+
+        handle.addEventListener('mousedown', onStart);
+        handle.addEventListener('touchstart', onStart, { passive: false });
+    },
 };
 
 app.initTheme();
+app.initKeyboardResize();
