@@ -122,9 +122,6 @@ const app = {
 
     _resetHandwriting() {
         document.getElementById('handwritingOverlay').classList.remove('active');
-        document.getElementById('hwClearBtn').classList.add('hidden');
-        document.getElementById('hwUndoBtn').classList.add('hidden');
-        document.getElementById('hwCloseBtn').classList.add('hidden');
         this.hwStrokes = [];
         this.hwCurrentStroke = null;
     },
@@ -473,9 +470,6 @@ const app = {
         const canvas = document.getElementById('handwritingCanvas');
         overlay.classList.add('active');
         document.getElementById('keyboardWrapper').classList.add('hidden');
-        document.getElementById('hwClearBtn').classList.remove('hidden');
-        document.getElementById('hwUndoBtn').classList.remove('hidden');
-        document.getElementById('hwCloseBtn').classList.remove('hidden');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         this.hwCtx = canvas.getContext('2d');
@@ -552,9 +546,6 @@ const app = {
         document.getElementById('handwritingOverlay').classList.remove('active');
         this.hwStrokes = [];
         this.hwCurrentStroke = null;
-        document.getElementById('hwClearBtn').classList.add('hidden');
-        document.getElementById('hwUndoBtn').classList.add('hidden');
-        document.getElementById('hwCloseBtn').classList.add('hidden');
         if (!document.getElementById('gameScreen').classList.contains('hidden')) {
             document.getElementById('keyboardWrapper').classList.remove('hidden');
         }
