@@ -613,7 +613,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 6px;
     position: relative;
     z-index: 10000;
 }
@@ -631,6 +631,13 @@ h1 {
     font-size: 18px;
     color: var(--text);
     transition: all 0.2s;
+}
+
+.handwriting-btn.small {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    border-radius: 8px;
 }
 
 .handwriting-btn:active {
