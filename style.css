@@ -746,3 +746,79 @@ h1 {
 .modal .btn-group {
     margin-top: 20px;
 }
+
+/* 分式显示 */
+.fraction {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: var(--text);
+    gap: 4px;
+}
+
+.fraction-line {
+    width: 100%;
+    min-width: 80px;
+    height: 3px;
+    background: var(--text);
+    border-radius: 2px;
+}
+
+/* 比较题布局 */
+.compare-problem {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 16px;
+    color: var(--text);
+}
+
+.compare-side {
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.compare-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.compare-vs {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+/* 比较按钮 */
+.compare-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.compare-btn {
+    flex: 1;
+    max-width: 140px;
+    padding: 16px;
+    font-size: 20px;
+    font-weight: bold;
+    border: 2px solid var(--border);
+    background: var(--card);
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--text);
+    transition: all 0.2s;
+}
+
+.compare-btn:active {
+    transform: scale(0.96);
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}

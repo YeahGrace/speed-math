@@ -28,6 +28,34 @@ const MODE_DESC = {
         title: '多数相加',
         desc: '多个多位数相加，答案与正确结果误差 <strong>&lt; 3%</strong> 即为正确。<br>点击「开始练习」后设置参数。',
     },
+    ratio: {
+        title: '比重估算',
+        desc: '三位数分式，分子 < 分母。<br>你的答案与正确结果误差 <strong>&lt; 3%</strong> 即为正确。',
+    },
+    multiple: {
+        title: '倍数估算',
+        desc: '三位数分式，分子 > 分母。<br>你的答案与正确结果误差 <strong>&lt; 3%</strong> 即为正确。',
+    },
+    basePeriod: {
+        title: '基期估算',
+        desc: '已知现期（四位数）和增长率（±x.x%），求基期。<br>你的答案与正确结果误差 <strong>&lt; 3%</strong> 即为正确。',
+    },
+    increment: {
+        title: '增量估算',
+        desc: '已知现期（四位数）和增长率（±x.x%），求增量。<br>你的答案与正确结果误差 <strong>&lt; 3%</strong> 即为正确。',
+    },
+    incrementCompare: {
+        title: '增量大小比较',
+        desc: '两组现期和增长率，比较增量大小。<br>点击「A > B」或「A < B」作答。',
+    },
+    baseRatio: {
+        title: '基期比重估算',
+        desc: '已知分子/分母的现期和增长率，求基期比重。<br>你的答案与正确结果误差 <strong>&lt; 3%</strong> 即为正确。',
+    },
+    mixedGrowth: {
+        title: '混合增长率估算',
+        desc: '已知整体与部分（或两部分）的现期和增长率，估算未知增长率。<br>你的答案与正确结果误差 <strong>&lt; 3%</strong> 即为正确。',
+    },
 };
 
 const app = {
@@ -80,8 +108,10 @@ const app = {
             document.getElementById('startDesc').innerHTML = '除法速算练习，<br>帮助你提升除法估算能力。';
         } else if (mode === 'sum') {
             document.getElementById('startDesc').innerHTML = '多数相加练习，<br>帮助你提升多位数加法能力。';
-        } else {
+        } else if (mode === 'two' || mode === 'three') {
             document.getElementById('startDesc').innerHTML = '所有题目均为<strong>有进位</strong>的乘法题目，<br>帮助你强化速算中最容易出错的环节。';
+        } else {
+            document.getElementById('startDesc').innerHTML = '资料分析速算练习，<br>帮助你提升估算与比较能力。';
         }
     },
 
@@ -169,6 +199,8 @@ const app = {
         document.getElementById('globalSettings').classList.remove('hidden');
         document.getElementById('backBtn').classList.add('hidden');
         document.getElementById('keyboardWrapper').classList.add('hidden');
+        document.getElementById('compareButtons').classList.add('hidden');
+        document.getElementById('answerInput').closest('.answer-row').classList.remove('hidden');
         document.getElementById('pageTitle').classList.remove('hidden');
         document.getElementById('subtitleText').classList.remove('hidden');
         clearInterval(this.totalTimerInterval);
@@ -180,6 +212,21 @@ const app = {
             const elapsed = (performance.now() - this.sessionStartTime) / 1000;
             document.getElementById('statTotalTime').textContent = Math.max(0, elapsed).toFixed(1) + 's';
         }, 100);
+    },
+
+    _randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    },
+
+    _randPercent() {
+        const sign = Math.random() < 0.5 ? 1 : -1;
+        const tenths = this._randInt(1, 300);
+        return sign * tenths / 1000;
+    },
+
+    _formatPercent(r) {
+        const sign = r > 0 ? '+' : '';
+        return sign + (r * 100).toFixed(1) + '%';
     },
 
     hasCarry(a, b) {
@@ -209,6 +256,161 @@ const app = {
                     return { numbers, answer, op: '+' };
                 }
                 attempts++;
+            }
+            this.usedKeys.clear();
+            return this.generateProblem();
+        }
+
+        if (this.mode === 'ratio') {
+            let attempts = 0;
+            while (attempts < 100) {
+                const a = this._randInt(100, 999);
+                const b = this._randInt(100, 999);
+                if (a >= b) continue;
+                const answer = a / b;
+                if (answer < 0.1 || answer > 0.9) continue;
+                const key = `${a}/${b}`;
+                if (this.usedKeys.has(key)) { attempts++; continue; }
+                this.usedKeys.add(key);
+                return { a, b, answer, op: '/' };
+            }
+            this.usedKeys.clear();
+            return this.generateProblem();
+        }
+
+        if (this.mode === 'multiple') {
+            let attempts = 0;
+            while (attempts < 100) {
+                const a = this._randInt(100, 999);
+                const b = this._randInt(100, 999);
+                if (a <= b) continue;
+                const answer = a / b;
+                if (answer < 1.1 || answer > 9.9) continue;
+                const key = `${a}/${b}`;
+                if (this.usedKeys.has(key)) { attempts++; continue; }
+                this.usedKeys.add(key);
+                return { a, b, answer, op: '/' };
+            }
+            this.usedKeys.clear();
+            return this.generateProblem();
+        }
+
+        if (this.mode === 'basePeriod') {
+            let attempts = 0;
+            while (attempts < 100) {
+                const current = this._randInt(1000, 9999);
+                const r = this._randPercent();
+                const answer = current / (1 + r);
+                const key = `BP${current},${r.toFixed(3)}`;
+                if (this.usedKeys.has(key)) { attempts++; continue; }
+                this.usedKeys.add(key);
+                return { current, r, answer, op: 'basePeriod' };
+            }
+            this.usedKeys.clear();
+            return this.generateProblem();
+        }
+
+        if (this.mode === 'increment') {
+            let attempts = 0;
+            while (attempts < 100) {
+                const current = this._randInt(1000, 9999);
+                const r = this._randPercent();
+                const base = current / (1 + r);
+                const answer = current - base;
+                const key = `INC${current},${r.toFixed(3)}`;
+                if (this.usedKeys.has(key)) { attempts++; continue; }
+                this.usedKeys.add(key);
+                return { current, r, answer, op: 'increment' };
+            }
+            this.usedKeys.clear();
+            return this.generateProblem();
+        }
+
+        if (this.mode === 'incrementCompare') {
+            let attempts = 0;
+            while (attempts < 200) {
+                const leftCurrent = this._randInt(1000, 9999);
+                const leftR = this._randPercent();
+                const rightCurrent = this._randInt(1000, 9999);
+                const rightR = this._randPercent();
+                const leftInc = leftCurrent * leftR / (1 + leftR);
+                const rightInc = rightCurrent * rightR / (1 + rightR);
+                const maxInc = Math.max(Math.abs(leftInc), Math.abs(rightInc));
+                if (maxInc === 0) { attempts++; continue; }
+                const diff = Math.abs(leftInc - rightInc) / maxInc;
+                if (diff > 0.10) { attempts++; continue; }
+                const key = `CMP${leftCurrent},${leftR.toFixed(3)},${rightCurrent},${rightR.toFixed(3)}`;
+                if (this.usedKeys.has(key)) { attempts++; continue; }
+                this.usedKeys.add(key);
+                return {
+                    left: { current: leftCurrent, r: leftR },
+                    right: { current: rightCurrent, r: rightR },
+                    answer: leftInc > rightInc ? '>' : '<',
+                    op: 'compare'
+                };
+            }
+            this.usedKeys.clear();
+            return this.generateProblem();
+        }
+
+        if (this.mode === 'baseRatio') {
+            let attempts = 0;
+            while (attempts < 100) {
+                const numCurrent = this._randInt(1000, 9999);
+                const numR = this._randPercent();
+                const denCurrent = this._randInt(1000, 9999);
+                const denR = this._randPercent();
+                const numBase = numCurrent / (1 + numR);
+                const denBase = denCurrent / (1 + denR);
+                const answer = numBase / denBase;
+                const key = `BR${numCurrent},${numR.toFixed(3)},${denCurrent},${denR.toFixed(3)}`;
+                if (this.usedKeys.has(key)) { attempts++; continue; }
+                this.usedKeys.add(key);
+                return {
+                    num: { current: numCurrent, r: numR },
+                    den: { current: denCurrent, r: denR },
+                    answer,
+                    op: 'baseRatio'
+                };
+            }
+            this.usedKeys.clear();
+            return this.generateProblem();
+        }
+
+        if (this.mode === 'mixedGrowth') {
+            let attempts = 0;
+            while (attempts < 100) {
+                const subType = Math.random() < 0.5 ? 'A' : 'B';
+                if (subType === 'A') {
+                    const total = this._randInt(2000, 9999);
+                    const partA = this._randInt(1000, total - 1000);
+                    const partB = total - partA;
+                    const rTotal = this._randPercent();
+                    const rA = this._randPercent();
+                    const answer = (total * rTotal - partA * rA) / partB;
+                    if (Math.abs(answer) > 0.5) { attempts++; continue; }
+                    const key = `MG_A${total},${partA},${rTotal.toFixed(3)},${rA.toFixed(3)}`;
+                    if (this.usedKeys.has(key)) { attempts++; continue; }
+                    this.usedKeys.add(key);
+                    return {
+                        total, partA, partB, rTotal, rA, answer,
+                        subType: 'A', op: 'mixedGrowth'
+                    };
+                } else {
+                    const partA = this._randInt(1000, 9999);
+                    const partB = this._randInt(1000, 9999);
+                    const total = partA + partB;
+                    const rA = this._randPercent();
+                    const rB = this._randPercent();
+                    const answer = (partA * rA + partB * rB) / total;
+                    const key = `MG_B${partA},${partB},${rA.toFixed(3)},${rB.toFixed(3)}`;
+                    if (this.usedKeys.has(key)) { attempts++; continue; }
+                    this.usedKeys.add(key);
+                    return {
+                        total, partA, partB, rA, rB, answer,
+                        subType: 'B', op: 'mixedGrowth'
+                    };
+                }
             }
             this.usedKeys.clear();
             return this.generateProblem();
@@ -295,23 +497,128 @@ const app = {
             el.innerHTML = nums.map((n, i) =>
                 `<div class="sum-row"><span class="sum-op">${i === lastIdx ? '+' : '&nbsp;'}</span><span class="sum-num">${n}</span></div>`
             ).join('') + '<div class="sum-divider"></div>';
+        } else if (this.mode === 'ratio' || this.mode === 'multiple') {
+            el.className = 'problem';
+            const p = this.currentProblem;
+            el.innerHTML = `<div class="fraction"><div>${p.a}</div><div class="fraction-line"></div><div>${p.b}</div></div>`;
+        } else if (this.mode === 'basePeriod') {
+            el.className = 'problem';
+            const p = this.currentProblem;
+            el.innerHTML = `<div>现期 ${p.current}</div><div>增长率 ${this._formatPercent(p.r)}</div><div style="font-size:24px;margin-top:8px;">求基期</div>`;
+        } else if (this.mode === 'increment') {
+            el.className = 'problem';
+            const p = this.currentProblem;
+            el.innerHTML = `<div>现期 ${p.current}</div><div>增长率 ${this._formatPercent(p.r)}</div><div style="font-size:24px;margin-top:8px;">求增量</div>`;
+        } else if (this.mode === 'incrementCompare') {
+            el.className = 'problem';
+            const p = this.currentProblem;
+            el.innerHTML = `
+                <div class="compare-problem">
+                    <div class="compare-side">
+                        <div class="compare-title">A</div>
+                        <div>现期 ${p.left.current}</div>
+                        <div>${this._formatPercent(p.left.r)}</div>
+                    </div>
+                    <div class="compare-vs">VS</div>
+                    <div class="compare-side">
+                        <div class="compare-title">B</div>
+                        <div>现期 ${p.right.current}</div>
+                        <div>${this._formatPercent(p.right.r)}</div>
+                    </div>
+                </div>
+                <div style="font-size:20px;margin-top:8px;">增量大小比较</div>`;
+        } else if (this.mode === 'baseRatio') {
+            el.className = 'problem';
+            const p = this.currentProblem;
+            el.innerHTML = `
+                <div style="font-size:18px;line-height:1.8;">
+                    <div>分子：现期 ${p.num.current}，${this._formatPercent(p.num.r)}</div>
+                    <div>分母：现期 ${p.den.current}，${this._formatPercent(p.den.r)}</div>
+                    <div style="font-size:22px;margin-top:8px;">求基期比重</div>
+                </div>`;
+        } else if (this.mode === 'mixedGrowth') {
+            el.className = 'problem';
+            const p = this.currentProblem;
+            if (p.subType === 'A') {
+                el.innerHTML = `
+                    <div style="font-size:18px;line-height:1.8;">
+                        <div>整体：现期 ${p.total}，${this._formatPercent(p.rTotal)}</div>
+                        <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
+                        <div style="font-size:22px;margin-top:8px;">求部分B增长率</div>
+                    </div>`;
+            } else {
+                el.innerHTML = `
+                    <div style="font-size:18px;line-height:1.8;">
+                        <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
+                        <div>部分B：现期 ${p.partB}，${this._formatPercent(p.rB)}</div>
+                        <div style="font-size:22px;margin-top:8px;">求整体增长率</div>
+                    </div>`;
+            }
         } else {
             el.className = 'problem';
             el.textContent = `${this.currentProblem.a} ${this.currentProblem.op || '×'} ${this.currentProblem.b}`;
         }
 
         const input = document.getElementById('answerInput');
-        input.value = '';
-        input.className = 'answer-input';
-        input.focus();
+        const compareBtns = document.getElementById('compareButtons');
+        const keyboard = document.getElementById('keyboardWrapper');
+        const answerRow = input.closest('.answer-row');
 
-        document.querySelectorAll('.num-btn').forEach(btn => {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-        });
+        if (this.mode === 'incrementCompare') {
+            answerRow.classList.add('hidden');
+            keyboard.classList.add('hidden');
+            compareBtns.classList.remove('hidden');
+        } else {
+            answerRow.classList.remove('hidden');
+            keyboard.classList.remove('hidden');
+            compareBtns.classList.add('hidden');
+            input.value = '';
+            input.className = 'answer-input';
+            input.focus();
+            document.querySelectorAll('.num-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+        }
 
         document.getElementById('feedback').textContent = '';
         this.problemStartTime = performance.now();
+    },
+
+    selectCompare(symbol) {
+        const correct = symbol === this.currentProblem.answer;
+        const problemTimeMs = performance.now() - this.problemStartTime;
+        const problemTimeSec = problemTimeMs / 1000;
+
+        this.stats.total++;
+        if (correct) this.stats.correct++;
+
+        const feedback = document.getElementById('feedback');
+        feedback.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+        if (correct) {
+            feedback.textContent = '✓ 正确';
+        } else {
+            feedback.textContent = `✗ 正确答案：${this.currentProblem.answer === '>' ? 'A > B' : 'A < B'}`;
+        }
+
+        const p = this.currentProblem;
+        const problemText = `A: 现期${p.left.current} ${this._formatPercent(p.left.r)} vs B: 现期${p.right.current} ${this._formatPercent(p.right.r)}`;
+        this.history.push({
+            idx: this.stats.total,
+            problem: problemText,
+            userAnswer: symbol,
+            correct,
+            answer: p.answer,
+            time: problemTimeSec
+        });
+        this.updateStats();
+
+        if (this.stats.total >= this.questionCount) {
+            clearInterval(this.totalTimerInterval);
+            setTimeout(() => this.showResult(), 500);
+        } else {
+            setTimeout(() => this.nextProblem(), 500);
+        }
     },
 
     numInput(num) {
@@ -346,6 +653,8 @@ const app = {
     },
 
     submit() {
+        if (this.mode === 'incrementCompare') return;
+
         const input = document.getElementById('answerInput');
         const userAnswer = parseFloat(input.value);
 
@@ -355,15 +664,18 @@ const app = {
         const problemTimeSec = problemTimeMs / 1000;
 
         let correct;
-        if (this.mode === 'sum') {
-            const err = Math.abs(userAnswer - this.currentProblem.answer) / this.currentProblem.answer;
-            correct = err < 0.03;
-        } else if (this.mode.startsWith('div')) {
-            const err = Math.abs(userAnswer - this.currentProblem.answer) / this.currentProblem.answer;
-            const threshold = this.mode === 'div2' ? 0.03 : 0.01;
+        const p = this.currentProblem;
+        const answer = p.answer;
+
+        if (this.mode === 'sum' || this.mode.startsWith('div') ||
+            this.mode === 'ratio' || this.mode === 'multiple' ||
+            this.mode === 'basePeriod' || this.mode === 'increment' ||
+            this.mode === 'baseRatio' || this.mode === 'mixedGrowth') {
+            const err = Math.abs(userAnswer - answer) / Math.abs(answer);
+            const threshold = (this.mode === 'div1') ? 0.01 : 0.03;
             correct = err < threshold;
         } else {
-            correct = Math.abs(userAnswer - this.currentProblem.answer) < 0.0001;
+            correct = Math.abs(userAnswer - answer) < 0.0001;
         }
 
         this.stats.total++;
@@ -378,19 +690,38 @@ const app = {
             btn.style.opacity = '0.5';
         });
 
+        let displayAnswer = answer;
+        if (this.mode === 'mixedGrowth') {
+            displayAnswer = this._formatPercent(answer);
+        }
+
         if (correct) {
             feedback.textContent = '✓ 正确';
         } else {
-            feedback.textContent = `✗ 正确答案：${this.currentProblem.answer}`;
+            feedback.textContent = `✗ 正确答案：${displayAnswer}`;
             input.classList.add('shake');
             setTimeout(() => input.classList.remove('shake'), 300);
         }
 
         let problemText;
         if (this.mode === 'sum') {
-            problemText = this.currentProblem.numbers.join(' + ');
+            problemText = p.numbers.join(' + ');
+        } else if (this.mode === 'ratio' || this.mode === 'multiple') {
+            problemText = `${p.a} / ${p.b}`;
+        } else if (this.mode === 'basePeriod') {
+            problemText = `现期${p.current}, ${this._formatPercent(p.r)} → 基期`;
+        } else if (this.mode === 'increment') {
+            problemText = `现期${p.current}, ${this._formatPercent(p.r)} → 增量`;
+        } else if (this.mode === 'baseRatio') {
+            problemText = `分子${p.num.current}(${this._formatPercent(p.num.r)}) / 分母${p.den.current}(${this._formatPercent(p.den.r)}) → 基期比重`;
+        } else if (this.mode === 'mixedGrowth') {
+            if (p.subType === 'A') {
+                problemText = `整体${p.total}(${this._formatPercent(p.rTotal)}) - 部分A${p.partA}(${this._formatPercent(p.rA)}) → 部分B增长率`;
+            } else {
+                problemText = `部分A${p.partA}(${this._formatPercent(p.rA)}) + 部分B${p.partB}(${this._formatPercent(p.rB)}) → 整体增长率`;
+            }
         } else {
-            problemText = `${this.currentProblem.a} ${this.currentProblem.op || '×'} ${this.currentProblem.b}`;
+            problemText = `${p.a} ${p.op || '×'} ${p.b}`;
         }
 
         this.history.push({
@@ -398,7 +729,7 @@ const app = {
             problem: problemText,
             userAnswer,
             correct,
-            answer: this.currentProblem.answer,
+            answer: displayAnswer,
             time: problemTimeSec
         });
         this.updateStats();
@@ -417,6 +748,8 @@ const app = {
         document.getElementById('resultScreen').classList.remove('hidden');
         document.getElementById('backBtn').classList.add('hidden');
         document.getElementById('keyboardWrapper').classList.add('hidden');
+        document.getElementById('compareButtons').classList.add('hidden');
+        document.getElementById('answerInput').closest('.answer-row').classList.remove('hidden');
         document.getElementById('pageTitle').classList.remove('hidden');
         document.getElementById('subtitleText').classList.add('hidden');
 
@@ -439,6 +772,13 @@ const app = {
             div2: '三位数÷两位数',
             div1: '三位数÷一位数',
             sum: '多数相加',
+            ratio: '比重估算',
+            multiple: '倍数估算',
+            basePeriod: '基期估算',
+            increment: '增量估算',
+            incrementCompare: '增量大小比较',
+            baseRatio: '基期比重估算',
+            mixedGrowth: '混合增长率估算',
         };
         document.getElementById('resultSummary').textContent =
             `本次${modeNames[this.mode]}练习 ${this.questionCount} 题，总用时 ${timeStr}`;

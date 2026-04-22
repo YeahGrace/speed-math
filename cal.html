@@ -31,6 +31,13 @@
                         <button class="toggle-btn" onclick="app.selectMode(this, 'div2')">三位数÷两位数</button>
                         <button class="toggle-btn" onclick="app.selectMode(this, 'div1')">三位数÷一位数</button>
                         <button class="toggle-btn" onclick="app.selectMode(this, 'sum')">多数相加</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'ratio')">比重估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'multiple')">倍数估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'basePeriod')">基期估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'increment')">增量估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'incrementCompare')">增量大小比较</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'baseRatio')">基期比重估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'mixedGrowth')">混合增长率</button>
                     </div>
                 </div>
 
@@ -90,6 +97,11 @@
                 </div>
 
                 <div class="feedback" id="feedback"></div>
+
+                <div class="compare-buttons hidden" id="compareButtons">
+                    <button class="compare-btn" onclick="app.selectCompare('>')">A > B</button>
+                    <button class="compare-btn" onclick="app.selectCompare('<')">A < B</button>
+                </div>
             </div>
 
             <!-- 结果界面 -->
