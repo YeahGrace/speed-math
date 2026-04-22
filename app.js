@@ -166,6 +166,7 @@ const app = {
 
         document.getElementById('pageTitle').classList.add('hidden');
         document.getElementById('subtitleText').classList.add('hidden');
+        document.getElementById('gameModeTitle').textContent = MODE_DESC[this.mode].title;
 
         this.stats = { total: 0, correct: 0 };
         this.history = [];
@@ -186,6 +187,7 @@ const app = {
         document.getElementById('backBtn').classList.remove('hidden');
         document.getElementById('pageTitle').classList.add('hidden');
         document.getElementById('subtitleText').classList.add('hidden');
+        document.getElementById('gameModeTitle').textContent = MODE_DESC[this.mode].title;
         this.updateStats();
         this.nextProblem();
         this.startTotalTimer();
@@ -225,8 +227,7 @@ const app = {
     },
 
     _formatPercent(r) {
-        const sign = r > 0 ? '+' : '';
-        return sign + (r * 100).toFixed(1) + '%';
+        return (r * 100).toFixed(1) + '%';
     },
 
     hasCarry(a, b) {
@@ -504,11 +505,11 @@ const app = {
         } else if (this.mode === 'basePeriod') {
             el.className = 'problem';
             const p = this.currentProblem;
-            el.innerHTML = `<div>现期 ${p.current}</div><div>增长率 ${this._formatPercent(p.r)}</div><div style="font-size:24px;margin-top:8px;">求基期</div>`;
+            el.innerHTML = `<div style="font-size:18px;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;">求基期</div>`;
         } else if (this.mode === 'increment') {
             el.className = 'problem';
             const p = this.currentProblem;
-            el.innerHTML = `<div>现期 ${p.current}</div><div>增长率 ${this._formatPercent(p.r)}</div><div style="font-size:24px;margin-top:8px;">求增量</div>`;
+            el.innerHTML = `<div style="font-size:18px;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;">求增量</div>`;
         } else if (this.mode === 'incrementCompare') {
             el.className = 'problem';
             const p = this.currentProblem;

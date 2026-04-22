@@ -822,3 +822,20 @@ h1 {
     color: white;
     border-color: #3498db;
 }
+
+.compare-buttons.hidden {
+    display: none;
+}
+
+.answer-row.hidden {
+    display: none;
+}
+
+.game-mode-title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    margin-top: 4px;
+}

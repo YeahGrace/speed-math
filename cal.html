@@ -65,6 +65,7 @@
 
             <!-- 练习界面 -->
             <div id="gameScreen" class="hidden">
+                <div class="game-mode-title" id="gameModeTitle"></div>
                 <div class="stats">
                     <div class="stat-item">
                         <div class="stat-value" id="statCount">0/10</div>
@@ -201,7 +202,8 @@
             <div class="settings">
                 <div class="settings-title">几位数</div>
                 <div class="toggle-group" id="sumDigitsGroup">
-                    <button class="toggle-btn active" onclick="app.selectSumDigits(this, 3)">3位</button>
+                    <button class="toggle-btn active" onclick="app.selectSumDigits(this, 2)">2位</button>
+                    <button class="toggle-btn" onclick="app.selectSumDigits(this, 3)">3位</button>
                     <button class="toggle-btn" onclick="app.selectSumDigits(this, 4)">4位</button>
                     <button class="toggle-btn" onclick="app.selectSumDigits(this, 5)">5位</button>
                 </div>
