@@ -120,7 +120,17 @@ const app = {
         document.getElementById('sumModal').classList.remove('active');
     },
 
+    _resetHandwriting() {
+        document.getElementById('handwritingOverlay').classList.remove('active');
+        document.getElementById('hwClearBtn').classList.add('hidden');
+        document.getElementById('hwUndoBtn').classList.add('hidden');
+        document.getElementById('hwCloseBtn').classList.add('hidden');
+        this.hwStrokes = [];
+        this.hwCurrentStroke = null;
+    },
+
     _doStart() {
+        this._resetHandwriting();
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('resultScreen').classList.add('hidden');
         document.getElementById('gameScreen').classList.remove('hidden');
@@ -141,6 +151,7 @@ const app = {
     },
 
     restart() {
+        this._resetHandwriting();
         this.stats = { total: 0, correct: 0 };
         this.history = [];
         this.usedKeys.clear();
@@ -154,6 +165,7 @@ const app = {
     },
 
     backToStart() {
+        this._resetHandwriting();
         document.getElementById('resultScreen').classList.add('hidden');
         document.getElementById('gameScreen').classList.add('hidden');
         document.getElementById('startScreen').classList.remove('hidden');
@@ -403,6 +415,7 @@ const app = {
     },
 
     showResult() {
+        this._resetHandwriting();
         document.getElementById('gameScreen').classList.add('hidden');
         document.getElementById('resultScreen').classList.remove('hidden');
         document.getElementById('backBtn').classList.add('hidden');
