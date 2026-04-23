@@ -365,7 +365,7 @@ const app = {
                 const denR = this._randPercent();
                 const numBase = numCurrent / (1 + numR);
                 const denBase = denCurrent / (1 + denR);
-                if (numBase >= denBase) { attempts++; continue; }
+                if (numBase >= denBase || numCurrent >= denCurrent) { attempts++; continue; }
                 const answer = numBase / denBase;
                 const key = `BR${numCurrent},${numR.toFixed(3)},${denCurrent},${denR.toFixed(3)}`;
                 if (this.usedKeys.has(key)) { attempts++; continue; }
@@ -577,7 +577,7 @@ const app = {
         } else if (this.mode === 'pctConvert') {
             el.className = 'problem';
             const p = this.currentProblem;
-            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">增长率: ${p.r.toFixed(1)}%</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">百化分 = ?</div>`;
+            el.innerHTML = `<div class="fraction"><div>100%</div><div class="fraction-line"></div><div>${p.r.toFixed(1)}%</div></div>`;
         } else {
             el.className = 'problem';
             el.textContent = `${this.currentProblem.a} ${this.currentProblem.op || '×'} ${this.currentProblem.b}`;
