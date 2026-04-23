@@ -751,7 +751,7 @@ const app = {
         document.getElementById('keyboardWrapper').classList.add('hidden');
         document.getElementById('compareButtons').classList.add('hidden');
         document.getElementById('answerInput').closest('.answer-row').classList.remove('hidden');
-        document.getElementById('pageTitle').classList.remove('hidden');
+        document.getElementById('pageTitle').classList.add('hidden');
         document.getElementById('subtitleText').classList.add('hidden');
 
         const totalTimeSec = (performance.now() - this.sessionStartTime) / 1000;
@@ -887,7 +887,7 @@ const app = {
         document.getElementById('handwritingOverlay').classList.remove('active');
         this.hwStrokes = [];
         this.hwCurrentStroke = null;
-        if (!document.getElementById('gameScreen').classList.contains('hidden')) {
+        if (!document.getElementById('gameScreen').classList.contains('hidden') && this.mode !== 'incrementCompare') {
             document.getElementById('keyboardWrapper').classList.remove('hidden');
         }
     },
@@ -921,7 +921,7 @@ const app = {
         const onMove = (e) => {
             e.preventDefault();
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const delta = clientY - startY;
+            const delta = startY - clientY;
             const factor = delta / 80;
             const newGap = Math.max(2, Math.min(16, startGap + factor * 4));
             const newBtnPad = Math.max(6, Math.min(32, startBtnPad + factor * 8));

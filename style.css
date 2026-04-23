@@ -823,6 +823,19 @@ h1 {
     border-color: #3498db;
 }
 
+.compare-btn.func {
+    background: var(--func-bg);
+    border-color: var(--func-border);
+    color: var(--func-text);
+    max-width: 64px;
+}
+
+.compare-btn.func:active {
+    background: var(--func-text);
+    color: white;
+    border-color: var(--func-text);
+}
+
 .compare-buttons.hidden {
     display: none;
 }
