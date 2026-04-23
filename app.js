@@ -74,6 +74,7 @@ const app = {
     usedKeys: new Set(),
     sumCount: 3,
     sumDigits: 2,
+    compareThreshold: 6,
     hwStrokes: [],
     hwCurrentStroke: null,
     hwCtx: null,
@@ -142,6 +143,10 @@ const app = {
             document.getElementById('sumModal').classList.add('active');
             return;
         }
+        if (this.mode === 'incrementCompare') {
+            document.getElementById('compareModal').classList.add('active');
+            return;
+        }
         this._doStart();
     },
 
@@ -152,6 +157,21 @@ const app = {
 
     closeSumModal() {
         document.getElementById('sumModal').classList.remove('active');
+    },
+
+    selectCompareThreshold(btn, threshold) {
+        document.querySelectorAll('#compareThresholdGroup .toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.compareThreshold = threshold;
+    },
+
+    confirmCompareSettings() {
+        document.getElementById('compareModal').classList.remove('active');
+        this._doStart();
+    },
+
+    closeCompareModal() {
+        document.getElementById('compareModal').classList.remove('active');
     },
 
     _resetHandwriting() {
@@ -333,7 +353,9 @@ const app = {
 
         if (this.mode === 'incrementCompare') {
             let attempts = 0;
-            while (attempts < 200) {
+            const upper = this.compareThreshold / 100;
+            const lower = (this.compareThreshold - 1) / 100;
+            while (attempts < 500) {
                 const leftCurrent = this._randInt(1000, 9999);
                 const leftR = this._randPercent();
                 const rightCurrent = this._randInt(1000, 9999);
@@ -343,7 +365,7 @@ const app = {
                 const maxInc = Math.max(Math.abs(leftInc), Math.abs(rightInc));
                 if (maxInc === 0) { attempts++; continue; }
                 const diff = Math.abs(leftInc - rightInc) / maxInc;
-                if (diff > 0.10) { attempts++; continue; }
+                if (diff <= lower || diff > upper) { attempts++; continue; }
                 const key = `CMP${leftCurrent},${leftR.toFixed(3)},${rightCurrent},${rightR.toFixed(3)}`;
                 if (this.usedKeys.has(key)) { attempts++; continue; }
                 this.usedKeys.add(key);
@@ -556,9 +578,9 @@ const app = {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `
-                <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:grid;grid-template-columns:auto 1fr;gap:4px 8px;justify-content:center;justify-items:end;align-items:baseline;">
-                    <span>分子：</span><span style="text-align:left;">现期 ${p.num.current}，${this._formatPercent(p.num.r)}</span>
-                    <span>分母：</span><span style="text-align:left;">现期 ${p.den.current}，${this._formatPercent(p.den.r)}</span>
+                <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:inline-block;text-align:left;">
+                    <div>分子：现期 ${p.num.current}，${this._formatPercent(p.num.r)}</div>
+                    <div>分母：现期 ${p.den.current}，${this._formatPercent(p.den.r)}</div>
                 </div>
                 <div style="font-size:22px;margin-top:8px;">求基期比重</div>`;
         } else if (this.mode === 'mixedGrowth') {
@@ -566,16 +588,16 @@ const app = {
             const p = this.currentProblem;
             if (p.subType === 'A') {
                 el.innerHTML = `
-                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:grid;grid-template-columns:auto 1fr;gap:4px 8px;justify-content:center;justify-items:end;align-items:baseline;">
-                        <span>整体：</span><span style="text-align:left;">现期 ${p.total}，${this._formatPercent(p.rTotal)}</span>
-                        <span>部分A：</span><span style="text-align:left;">现期 ${p.partA}，${this._formatPercent(p.rA)}</span>
+                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:inline-block;text-align:left;">
+                        <div>整体：现期 ${p.total}，${this._formatPercent(p.rTotal)}</div>
+                        <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
                     </div>
                     <div style="font-size:22px;margin-top:8px;">求部分B增长率</div>`;
             } else {
                 el.innerHTML = `
-                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:grid;grid-template-columns:auto 1fr;gap:4px 8px;justify-content:center;justify-items:end;align-items:baseline;">
-                        <span>部分A：</span><span style="text-align:left;">现期 ${p.partA}，${this._formatPercent(p.rA)}</span>
-                        <span>部分B：</span><span style="text-align:left;">现期 ${p.partB}，${this._formatPercent(p.rB)}</span>
+                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:inline-block;text-align:left;">
+                        <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
+                        <div>部分B：现期 ${p.partB}，${this._formatPercent(p.rB)}</div>
                     </div>
                     <div style="font-size:22px;margin-top:8px;">求整体增长率</div>`;
             }

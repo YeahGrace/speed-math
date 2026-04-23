@@ -191,6 +191,32 @@
         </div>
     </div>
 
+    <!-- 增量大小比较难度弹窗 -->
+    <div class="modal-overlay" id="compareModal">
+        <div class="modal">
+            <h3>选择难度</h3>
+            <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">差距越小，难度越高</p>
+            <div class="settings" style="margin-top:0;padding-top:0;border-top:none;">
+                <div class="settings-title">增量差距范围</div>
+                <div class="toggle-group" id="compareThresholdGroup">
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 2)">1-2%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 3)">2-3%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 4)">3-4%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 5)">4-5%</button>
+                    <button class="toggle-btn active" onclick="app.selectCompareThreshold(this, 6)">5-6%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 7)">6-7%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 8)">7-8%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 9)">8-9%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 10)">9-10%</button>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="app.confirmCompareSettings()">确认</button>
+                <button class="btn btn-secondary" onclick="app.closeCompareModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 多数相加设置弹窗 -->
     <div class="modal-overlay" id="sumModal">
         <div class="modal">
