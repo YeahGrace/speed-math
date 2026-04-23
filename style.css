@@ -396,6 +396,15 @@ h1 {
     margin-bottom: 8px;
 }
 
+.mode-section-title {
+    width: 100%;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
 .toggle-group {
     display: flex;
     gap: 8px;
@@ -825,13 +834,13 @@ h1 {
 
 .compare-btn {
     flex: 1;
-    max-width: 140px;
-    padding: 16px;
-    font-size: 20px;
+    max-width: 120px;
+    padding: 10px;
+    font-size: 16px;
     font-weight: bold;
     border: 2px solid var(--border);
     background: var(--card);
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     color: var(--text);
     transition: all 0.2s;
@@ -848,7 +857,8 @@ h1 {
     background: var(--func-bg);
     border-color: var(--func-border);
     color: var(--func-text);
-    max-width: 64px;
+    max-width: 52px;
+    font-size: 18px;
 }
 
 .compare-btn.func:active {

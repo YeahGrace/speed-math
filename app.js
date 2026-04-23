@@ -205,7 +205,9 @@ const app = {
         document.getElementById('keyboardWrapper').classList.add('hidden');
         document.getElementById('compareButtons').classList.add('hidden');
         document.getElementById('answerInput').closest('.answer-row').classList.remove('hidden');
-        document.getElementById('pageTitle').textContent = '速算练习';
+        const pageTitle = document.getElementById('pageTitle');
+        pageTitle.textContent = '速算练习';
+        pageTitle.classList.remove('hidden');
         document.getElementById('subtitleText').classList.remove('hidden');
         clearInterval(this.totalTimerInterval);
     },
@@ -384,9 +386,9 @@ const app = {
         if (this.mode === 'pctConvert') {
             let attempts = 0;
             while (attempts < 100) {
-                const tenths = this._randInt(11, 300);
+                const tenths = this._randInt(51, 300);
+                if (tenths % 10 === 0) { attempts++; continue; }
                 const r = tenths / 10;
-                if (r % 10 === 0) { attempts++; continue; }
                 const answer = 100 / r;
                 const key = `PC${r.toFixed(1)}`;
                 if (this.usedKeys.has(key)) { attempts++; continue; }
@@ -524,11 +526,11 @@ const app = {
         } else if (this.mode === 'basePeriod') {
             el.className = 'problem';
             const p = this.currentProblem;
-            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求基期（此处改文字大小）</div>`;
+            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求基期</div>`;
         } else if (this.mode === 'increment') {
             el.className = 'problem';
             const p = this.currentProblem;
-            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求增量（此处改文字大小）</div>`;
+            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求增量</div>`;
         } else if (this.mode === 'incrementCompare') {
             el.className = 'problem';
             const p = this.currentProblem;
@@ -546,14 +548,17 @@ const app = {
                         <div>${this._formatPercent(p.right.r)}</div>
                     </div>
                 </div>
-                <div style="font-size:20px;margin-top:8px;letter-spacing:0;">增量大小比较</div>`;
+                <div style="font-size:20px;margin-top:8px;letter-spacing:0;display:flex;align-items:center;justify-content:center;gap:8px;">
+                    增量大小比较
+                    <button class="handwriting-btn small" onclick="app.openHandwriting()" title="手写">✎</button>
+                </div>`;
         } else if (this.mode === 'baseRatio') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `
                 <div style="font-size:18px;line-height:1.8;letter-spacing:0;">
-                    <div>分子：现期 ${p.num.current}，${this._formatPercent(p.num.r)}</div>
-                    <div>分母：现期 ${p.den.current}，${this._formatPercent(p.den.r)}</div>
+                    <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:3.5em;text-align:right;">分子：</span><span>现期 ${p.num.current}，${this._formatPercent(p.num.r)}</span></div>
+                    <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:3.5em;text-align:right;">分母：</span><span>现期 ${p.den.current}，${this._formatPercent(p.den.r)}</span></div>
                     <div style="font-size:22px;margin-top:8px;">求基期比重</div>
                 </div>`;
         } else if (this.mode === 'mixedGrowth') {
@@ -562,15 +567,15 @@ const app = {
             if (p.subType === 'A') {
                 el.innerHTML = `
                     <div style="font-size:18px;line-height:1.8;letter-spacing:0;">
-                        <div>整体：现期 ${p.total}，${this._formatPercent(p.rTotal)}</div>
-                        <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
+                        <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:4.5em;text-align:right;">整体：</span><span>现期 ${p.total}，${this._formatPercent(p.rTotal)}</span></div>
+                        <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:4.5em;text-align:right;">部分A：</span><span>现期 ${p.partA}，${this._formatPercent(p.rA)}</span></div>
                         <div style="font-size:22px;margin-top:8px;">求部分B增长率</div>
                     </div>`;
             } else {
                 el.innerHTML = `
                     <div style="font-size:18px;line-height:1.8;letter-spacing:0;">
-                        <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
-                        <div>部分B：现期 ${p.partB}，${this._formatPercent(p.rB)}</div>
+                        <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:4.5em;text-align:right;">部分A：</span><span>现期 ${p.partA}，${this._formatPercent(p.rA)}</span></div>
+                        <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:4.5em;text-align:right;">部分B：</span><span>现期 ${p.partB}，${this._formatPercent(p.rB)}</span></div>
                         <div style="font-size:22px;margin-top:8px;">求整体增长率</div>
                     </div>`;
             }
@@ -589,17 +594,20 @@ const app = {
         const answerRow = input.closest('.answer-row');
         const percentSuffix = document.getElementById('percentSuffix');
 
+        const hwBtn = answerRow.querySelector('.handwriting-btn');
         if (this.mode === 'incrementCompare') {
             answerRow.classList.remove('hidden');
             input.classList.add('hidden');
             keyboard.classList.add('hidden');
             compareBtns.classList.remove('hidden');
             percentSuffix.classList.add('hidden');
+            if (hwBtn) hwBtn.classList.add('hidden');
         } else {
             answerRow.classList.remove('hidden');
             input.classList.remove('hidden');
             keyboard.classList.remove('hidden');
             compareBtns.classList.add('hidden');
+            if (hwBtn) hwBtn.classList.remove('hidden');
             input.value = '';
             input.className = 'answer-input';
             input.focus();
