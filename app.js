@@ -188,7 +188,9 @@ const app = {
         document.getElementById('globalSettings').classList.add('hidden');
         document.getElementById('keyboardWrapper').classList.remove('hidden');
 
-        document.getElementById('pageTitle').textContent = MODE_DESC[this.mode].title;
+        const pageTitle = document.getElementById('pageTitle');
+        pageTitle.textContent = MODE_DESC[this.mode].title;
+        pageTitle.classList.remove('hidden');
         document.getElementById('subtitleText').classList.add('hidden');
 
         this.stats = { total: 0, correct: 0 };
@@ -208,7 +210,9 @@ const app = {
         this.usedKeys.clear();
         this.sessionStartTime = performance.now();
         document.getElementById('backBtn').classList.remove('hidden');
-        document.getElementById('pageTitle').textContent = MODE_DESC[this.mode].title;
+        const pageTitle = document.getElementById('pageTitle');
+        pageTitle.textContent = MODE_DESC[this.mode].title;
+        pageTitle.classList.remove('hidden');
         document.getElementById('subtitleText').classList.add('hidden');
         this.updateStats();
         this.nextProblem();
@@ -534,6 +538,7 @@ const app = {
         this.currentProblem = this.generateProblem();
         const el = document.getElementById('problem');
 
+        // 字体大小: .problem-sum 24px (手机20px)
         if (this.mode === 'sum') {
             el.className = 'problem-sum';
             const nums = this.currentProblem.numbers;
@@ -541,18 +546,22 @@ const app = {
             el.innerHTML = nums.map((n, i) =>
                 `<div class="sum-row"><span class="sum-op">${i === lastIdx ? '+' : '&nbsp;'}</span><span class="sum-num">${n}</span></div>`
             ).join('') + '<div class="sum-divider"></div>';
+        // 字体大小: .fraction 36px
         } else if (this.mode === 'ratio' || this.mode === 'multiple') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `<div class="fraction"><div>${p.a}</div><div class="fraction-line"></div><div>${p.b}</div></div>`;
+        // 字体大小: 18px
         } else if (this.mode === 'basePeriod') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求基期</div>`;
+        // 字体大小: 18px
         } else if (this.mode === 'increment') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求增量</div>`;
+        // 字体大小: .compare-title 20px / .compare-vs 18px / .compare-side 16px / 标题行 20px
         } else if (this.mode === 'incrementCompare') {
             el.className = 'problem';
             const p = this.currentProblem;
@@ -574,6 +583,7 @@ const app = {
                     增量大小比较
                     <button class="handwriting-btn small" onclick="app.openHandwriting()" title="手写">✎</button>
                 </div>`;
+        // 字体大小: 18px / 问题 22px
         } else if (this.mode === 'baseRatio') {
             el.className = 'problem';
             const p = this.currentProblem;
@@ -583,6 +593,7 @@ const app = {
                     <div>分母：现期 ${p.den.current}，${this._formatPercent(p.den.r)}</div>
                 </div>
                 <div style="font-size:22px;margin-top:8px;">求基期比重</div>`;
+        // 字体大小: 18px / 问题 22px
         } else if (this.mode === 'mixedGrowth') {
             el.className = 'problem';
             const p = this.currentProblem;
@@ -601,10 +612,12 @@ const app = {
                     </div>
                     <div style="font-size:22px;margin-top:8px;">求整体增长率</div>`;
             }
+        // 字体大小: .fraction 36px
         } else if (this.mode === 'pctConvert') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `<div class="fraction"><div>100%</div><div class="fraction-line"></div><div>${p.r.toFixed(1)}%</div></div>`;
+        // 字体大小: .problem 48px (手机32px)
         } else {
             el.className = 'problem';
             el.textContent = `${this.currentProblem.a} ${this.currentProblem.op || '×'} ${this.currentProblem.b}`;
@@ -740,7 +753,9 @@ const app = {
             this.mode === 'baseRatio' || this.mode === 'mixedGrowth' ||
             this.mode === 'pctConvert') {
             const err = Math.abs(userAnswer - answer) / Math.abs(answer);
-            const threshold = (this.mode === 'div1') ? 0.01 : 0.03;
+            let threshold = 0.03;
+            if (this.mode === 'div1') threshold = 0.01;
+            else if (this.mode === 'pctConvert') threshold = 0.02;
             correct = err < threshold;
         } else {
             correct = Math.abs(userAnswer - answer) < 0.0001;
@@ -824,7 +839,9 @@ const app = {
         document.getElementById('keyboardWrapper').classList.add('hidden');
         document.getElementById('compareButtons').classList.add('hidden');
         document.getElementById('answerInput').closest('.answer-row').classList.remove('hidden');
-        document.getElementById('pageTitle').classList.add('hidden');
+        const pageTitle = document.getElementById('pageTitle');
+        pageTitle.textContent = '练习完成';
+        pageTitle.classList.remove('hidden');
         document.getElementById('subtitleText').classList.add('hidden');
 
         const totalTimeSec = (performance.now() - this.sessionStartTime) / 1000;
@@ -1017,7 +1034,51 @@ const app = {
         handle.addEventListener('mousedown', onStart);
         handle.addEventListener('touchstart', onStart, { passive: false });
     },
+
+    initFloatingHwDrag() {
+        const btn = document.getElementById('floatingHwBtn');
+        if (!btn) return;
+        let startX = 0, startY = 0, startRight = 0, startBottom = 0;
+
+        const onStart = (e) => {
+            e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            startX = clientX;
+            startY = clientY;
+            const style = getComputedStyle(btn);
+            startRight = parseFloat(style.right) || 16;
+            startBottom = parseFloat(style.bottom) || 80;
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd);
+        };
+
+        const onMove = (e) => {
+            e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const deltaX = clientX - startX;
+            const deltaY = clientY - startY;
+            const newRight = Math.max(0, Math.min(window.innerWidth - btn.offsetWidth, startRight - deltaX));
+            const newBottom = Math.max(0, Math.min(window.innerHeight - btn.offsetHeight, startBottom - deltaY));
+            btn.style.right = newRight + 'px';
+            btn.style.bottom = newBottom + 'px';
+        };
+
+        const onEnd = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+        };
+
+        btn.addEventListener('mousedown', onStart);
+        btn.addEventListener('touchstart', onStart, { passive: false });
+    },
 };
 
 app.initTheme();
 app.initKeyboardResize();
+app.initFloatingHwDrag();
