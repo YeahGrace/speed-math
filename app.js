@@ -56,6 +56,10 @@ const MODE_DESC = {
         title: '混合增长率估算',
         desc: '已知整体与部分（或两部分）的现期和增长率，估算未知增长率。<br>你的答案与正确结果误差 <strong>&lt; 3%</strong> 即为正确。',
     },
+    pctConvert: {
+        title: '百化分',
+        desc: '给出正增长率，计算 100% 除以该增长率的倍数。<br>你的答案与正确结果误差 <strong>&lt; 3%</strong> 即为正确。',
+    },
 };
 
 const app = {
@@ -69,7 +73,7 @@ const app = {
     history: [],
     usedKeys: new Set(),
     sumCount: 3,
-    sumDigits: 3,
+    sumDigits: 2,
     hwStrokes: [],
     hwCurrentStroke: null,
     hwCtx: null,
@@ -164,9 +168,8 @@ const app = {
         document.getElementById('globalSettings').classList.add('hidden');
         document.getElementById('keyboardWrapper').classList.remove('hidden');
 
-        document.getElementById('pageTitle').classList.add('hidden');
+        document.getElementById('pageTitle').textContent = MODE_DESC[this.mode].title;
         document.getElementById('subtitleText').classList.add('hidden');
-        document.getElementById('gameModeTitle').textContent = MODE_DESC[this.mode].title;
 
         this.stats = { total: 0, correct: 0 };
         this.history = [];
@@ -185,9 +188,8 @@ const app = {
         this.usedKeys.clear();
         this.sessionStartTime = performance.now();
         document.getElementById('backBtn').classList.remove('hidden');
-        document.getElementById('pageTitle').classList.add('hidden');
+        document.getElementById('pageTitle').textContent = MODE_DESC[this.mode].title;
         document.getElementById('subtitleText').classList.add('hidden');
-        document.getElementById('gameModeTitle').textContent = MODE_DESC[this.mode].title;
         this.updateStats();
         this.nextProblem();
         this.startTotalTimer();
@@ -203,7 +205,7 @@ const app = {
         document.getElementById('keyboardWrapper').classList.add('hidden');
         document.getElementById('compareButtons').classList.add('hidden');
         document.getElementById('answerInput').closest('.answer-row').classList.remove('hidden');
-        document.getElementById('pageTitle').classList.remove('hidden');
+        document.getElementById('pageTitle').textContent = '速算练习';
         document.getElementById('subtitleText').classList.remove('hidden');
         clearInterval(this.totalTimerInterval);
     },
@@ -363,6 +365,7 @@ const app = {
                 const denR = this._randPercent();
                 const numBase = numCurrent / (1 + numR);
                 const denBase = denCurrent / (1 + denR);
+                if (numBase >= denBase) { attempts++; continue; }
                 const answer = numBase / denBase;
                 const key = `BR${numCurrent},${numR.toFixed(3)},${denCurrent},${denR.toFixed(3)}`;
                 if (this.usedKeys.has(key)) { attempts++; continue; }
@@ -373,6 +376,22 @@ const app = {
                     answer,
                     op: 'baseRatio'
                 };
+            }
+            this.usedKeys.clear();
+            return this.generateProblem();
+        }
+
+        if (this.mode === 'pctConvert') {
+            let attempts = 0;
+            while (attempts < 100) {
+                const tenths = this._randInt(11, 300);
+                const r = tenths / 10;
+                if (r % 10 === 0) { attempts++; continue; }
+                const answer = 100 / r;
+                const key = `PC${r.toFixed(1)}`;
+                if (this.usedKeys.has(key)) { attempts++; continue; }
+                this.usedKeys.add(key);
+                return { r, answer, op: 'pctConvert' };
             }
             this.usedKeys.clear();
             return this.generateProblem();
@@ -505,16 +524,16 @@ const app = {
         } else if (this.mode === 'basePeriod') {
             el.className = 'problem';
             const p = this.currentProblem;
-            el.innerHTML = `<div style="font-size:18px;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;">求基期</div>`;
+            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求基期（此处改文字大小）</div>`;
         } else if (this.mode === 'increment') {
             el.className = 'problem';
             const p = this.currentProblem;
-            el.innerHTML = `<div style="font-size:18px;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;">求增量</div>`;
+            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求增量（此处改文字大小）</div>`;
         } else if (this.mode === 'incrementCompare') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `
-                <div class="compare-problem">
+                <div class="compare-problem" style="letter-spacing:0;">
                     <div class="compare-side">
                         <div class="compare-title">A</div>
                         <div>现期 ${p.left.current}</div>
@@ -527,12 +546,12 @@ const app = {
                         <div>${this._formatPercent(p.right.r)}</div>
                     </div>
                 </div>
-                <div style="font-size:20px;margin-top:8px;">增量大小比较</div>`;
+                <div style="font-size:20px;margin-top:8px;letter-spacing:0;">增量大小比较</div>`;
         } else if (this.mode === 'baseRatio') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `
-                <div style="font-size:18px;line-height:1.8;">
+                <div style="font-size:18px;line-height:1.8;letter-spacing:0;">
                     <div>分子：现期 ${p.num.current}，${this._formatPercent(p.num.r)}</div>
                     <div>分母：现期 ${p.den.current}，${this._formatPercent(p.den.r)}</div>
                     <div style="font-size:22px;margin-top:8px;">求基期比重</div>
@@ -542,19 +561,23 @@ const app = {
             const p = this.currentProblem;
             if (p.subType === 'A') {
                 el.innerHTML = `
-                    <div style="font-size:18px;line-height:1.8;">
+                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;">
                         <div>整体：现期 ${p.total}，${this._formatPercent(p.rTotal)}</div>
                         <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
                         <div style="font-size:22px;margin-top:8px;">求部分B增长率</div>
                     </div>`;
             } else {
                 el.innerHTML = `
-                    <div style="font-size:18px;line-height:1.8;">
+                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;">
                         <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
                         <div>部分B：现期 ${p.partB}，${this._formatPercent(p.rB)}</div>
                         <div style="font-size:22px;margin-top:8px;">求整体增长率</div>
                     </div>`;
             }
+        } else if (this.mode === 'pctConvert') {
+            el.className = 'problem';
+            const p = this.currentProblem;
+            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">增长率: ${p.r.toFixed(1)}%</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">百化分 = ?</div>`;
         } else {
             el.className = 'problem';
             el.textContent = `${this.currentProblem.a} ${this.currentProblem.op || '×'} ${this.currentProblem.b}`;
@@ -564,13 +587,17 @@ const app = {
         const compareBtns = document.getElementById('compareButtons');
         const keyboard = document.getElementById('keyboardWrapper');
         const answerRow = input.closest('.answer-row');
+        const percentSuffix = document.getElementById('percentSuffix');
 
         if (this.mode === 'incrementCompare') {
-            answerRow.classList.add('hidden');
+            answerRow.classList.remove('hidden');
+            input.classList.add('hidden');
             keyboard.classList.add('hidden');
             compareBtns.classList.remove('hidden');
+            percentSuffix.classList.add('hidden');
         } else {
             answerRow.classList.remove('hidden');
+            input.classList.remove('hidden');
             keyboard.classList.remove('hidden');
             compareBtns.classList.add('hidden');
             input.value = '';
@@ -580,6 +607,11 @@ const app = {
                 btn.disabled = false;
                 btn.style.opacity = '1';
             });
+            if (this.mode === 'ratio' || this.mode === 'baseRatio' || this.mode === 'mixedGrowth') {
+                percentSuffix.classList.remove('hidden');
+            } else {
+                percentSuffix.classList.add('hidden');
+            }
         }
 
         document.getElementById('feedback').textContent = '';
@@ -666,12 +698,17 @@ const app = {
 
         let correct;
         const p = this.currentProblem;
-        const answer = p.answer;
+        let answer = p.answer;
+
+        if (this.mode === 'ratio' || this.mode === 'baseRatio' || this.mode === 'mixedGrowth') {
+            answer = answer * 100;
+        }
 
         if (this.mode === 'sum' || this.mode.startsWith('div') ||
             this.mode === 'ratio' || this.mode === 'multiple' ||
             this.mode === 'basePeriod' || this.mode === 'increment' ||
-            this.mode === 'baseRatio' || this.mode === 'mixedGrowth') {
+            this.mode === 'baseRatio' || this.mode === 'mixedGrowth' ||
+            this.mode === 'pctConvert') {
             const err = Math.abs(userAnswer - answer) / Math.abs(answer);
             const threshold = (this.mode === 'div1') ? 0.01 : 0.03;
             correct = err < threshold;
@@ -691,9 +728,13 @@ const app = {
             btn.style.opacity = '0.5';
         });
 
-        let displayAnswer = answer;
-        if (this.mode === 'mixedGrowth') {
-            displayAnswer = this._formatPercent(answer);
+        let displayAnswer;
+        if (this.mode === 'ratio' || this.mode === 'baseRatio' || this.mode === 'mixedGrowth') {
+            displayAnswer = answer.toFixed(1) + '%';
+        } else if (this.mode === 'basePeriod' || this.mode === 'increment' || this.mode === 'multiple' || this.mode === 'pctConvert') {
+            displayAnswer = answer.toFixed(2);
+        } else {
+            displayAnswer = answer;
         }
 
         if (correct) {
@@ -721,6 +762,8 @@ const app = {
             } else {
                 problemText = `部分A${p.partA}(${this._formatPercent(p.rA)}) + 部分B${p.partB}(${this._formatPercent(p.rB)}) → 整体增长率`;
             }
+        } else if (this.mode === 'pctConvert') {
+            problemText = `增长率 ${p.r.toFixed(1)}% → 百化分`;
         } else {
             problemText = `${p.a} ${p.op || '×'} ${p.b}`;
         }
@@ -780,6 +823,7 @@ const app = {
             incrementCompare: '增量大小比较',
             baseRatio: '基期比重估算',
             mixedGrowth: '混合增长率估算',
+            pctConvert: '百化分',
         };
         document.getElementById('resultSummary').textContent =
             `本次${modeNames[this.mode]}练习 ${this.questionCount} 题，总用时 ${timeStr}`;

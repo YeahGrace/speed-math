@@ -38,6 +38,7 @@
                         <button class="toggle-btn" onclick="app.selectMode(this, 'incrementCompare')">增量大小比较</button>
                         <button class="toggle-btn" onclick="app.selectMode(this, 'baseRatio')">基期比重估算</button>
                         <button class="toggle-btn" onclick="app.selectMode(this, 'mixedGrowth')">混合增长率</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'pctConvert')">百化分</button>
                     </div>
                 </div>
 
@@ -65,7 +66,6 @@
 
             <!-- 练习界面 -->
             <div id="gameScreen" class="hidden">
-                <div class="game-mode-title" id="gameModeTitle"></div>
                 <div class="stats">
                     <div class="stat-item">
                         <div class="stat-value" id="statCount">0/10</div>
@@ -93,6 +93,7 @@
                             inputmode="numeric"
                             readonly
                         >
+                        <span class="percent-suffix hidden" id="percentSuffix">%</span>
                         <button class="handwriting-btn" onclick="app.openHandwriting()" title="手写">✎</button>
                     </div>
                 </div>
@@ -111,6 +112,7 @@
                 <div class="result-header">
                     <h2>练习完成</h2>
                     <p style="color:var(--text-secondary); font-size:13px;" id="resultSummary"></p>
+                    <button class="handwriting-btn result-hw-btn" onclick="app.openHandwriting()" title="手写">✎</button>
                 </div>
 
                 <div class="result-summary">
