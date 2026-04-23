@@ -1039,28 +1039,33 @@ const app = {
         const btn = document.getElementById('floatingHwBtn');
         if (!btn) return;
         let startX = 0, startY = 0, startRight = 0, startBottom = 0;
+        let isDragging = false;
 
         const onStart = (e) => {
-            e.preventDefault();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             startX = clientX;
             startY = clientY;
+            isDragging = false;
             const style = getComputedStyle(btn);
             startRight = parseFloat(style.right) || 16;
             startBottom = parseFloat(style.bottom) || 80;
             document.addEventListener('mousemove', onMove);
             document.addEventListener('mouseup', onEnd);
-            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchmove', onMove, { passive: true });
             document.addEventListener('touchend', onEnd);
         };
 
         const onMove = (e) => {
-            e.preventDefault();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             const deltaX = clientX - startX;
             const deltaY = clientY - startY;
+            if (!isDragging && (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4)) {
+                isDragging = true;
+            }
+            if (!isDragging) return;
+            if (e.cancelable) e.preventDefault();
             const newRight = Math.max(0, Math.min(window.innerWidth - btn.offsetWidth, startRight - deltaX));
             const newBottom = Math.max(0, Math.min(window.innerHeight - btn.offsetHeight, startBottom - deltaY));
             btn.style.right = newRight + 'px';
@@ -1075,7 +1080,7 @@ const app = {
         };
 
         btn.addEventListener('mousedown', onStart);
-        btn.addEventListener('touchstart', onStart, { passive: false });
+        btn.addEventListener('touchstart', onStart, { passive: true });
     },
 };
 
