@@ -556,28 +556,28 @@ const app = {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `
-                <div style="font-size:18px;line-height:1.8;letter-spacing:0;">
-                    <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:3.5em;text-align:right;">分子：</span><span>现期 ${p.num.current}，${this._formatPercent(p.num.r)}</span></div>
-                    <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:3.5em;text-align:right;">分母：</span><span>现期 ${p.den.current}，${this._formatPercent(p.den.r)}</span></div>
-                    <div style="font-size:22px;margin-top:8px;">求基期比重</div>
-                </div>`;
+                <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:grid;grid-template-columns:auto 1fr;gap:4px 8px;justify-content:center;justify-items:end;align-items:baseline;">
+                    <span>分子：</span><span style="text-align:left;">现期 ${p.num.current}，${this._formatPercent(p.num.r)}</span>
+                    <span>分母：</span><span style="text-align:left;">现期 ${p.den.current}，${this._formatPercent(p.den.r)}</span>
+                </div>
+                <div style="font-size:22px;margin-top:8px;">求基期比重</div>`;
         } else if (this.mode === 'mixedGrowth') {
             el.className = 'problem';
             const p = this.currentProblem;
             if (p.subType === 'A') {
                 el.innerHTML = `
-                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;">
-                        <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:4.5em;text-align:right;">整体：</span><span>现期 ${p.total}，${this._formatPercent(p.rTotal)}</span></div>
-                        <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:4.5em;text-align:right;">部分A：</span><span>现期 ${p.partA}，${this._formatPercent(p.rA)}</span></div>
-                        <div style="font-size:22px;margin-top:8px;">求部分B增长率</div>
-                    </div>`;
+                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:grid;grid-template-columns:auto 1fr;gap:4px 8px;justify-content:center;justify-items:end;align-items:baseline;">
+                        <span>整体：</span><span style="text-align:left;">现期 ${p.total}，${this._formatPercent(p.rTotal)}</span>
+                        <span>部分A：</span><span style="text-align:left;">现期 ${p.partA}，${this._formatPercent(p.rA)}</span>
+                    </div>
+                    <div style="font-size:22px;margin-top:8px;">求部分B增长率</div>`;
             } else {
                 el.innerHTML = `
-                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;">
-                        <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:4.5em;text-align:right;">部分A：</span><span>现期 ${p.partA}，${this._formatPercent(p.rA)}</span></div>
-                        <div style="display:flex;justify-content:center;gap:4px;"><span style="min-width:4.5em;text-align:right;">部分B：</span><span>现期 ${p.partB}，${this._formatPercent(p.rB)}</span></div>
-                        <div style="font-size:22px;margin-top:8px;">求整体增长率</div>
-                    </div>`;
+                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:grid;grid-template-columns:auto 1fr;gap:4px 8px;justify-content:center;justify-items:end;align-items:baseline;">
+                        <span>部分A：</span><span style="text-align:left;">现期 ${p.partA}，${this._formatPercent(p.rA)}</span>
+                        <span>部分B：</span><span style="text-align:left;">现期 ${p.partB}，${this._formatPercent(p.rB)}</span>
+                    </div>
+                    <div style="font-size:22px;margin-top:8px;">求整体增长率</div>`;
             }
         } else if (this.mode === 'pctConvert') {
             el.className = 'problem';

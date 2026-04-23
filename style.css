@@ -442,6 +442,10 @@ h1 {
     display: none;
 }
 
+.handwriting-btn.hidden {
+    display: none;
+}
+
 .start-screen {
     text-align: center;
 }
