@@ -976,7 +976,6 @@ const app = {
 
         this.hwStrokes = [];
         this.hwCurrentStroke = null;
-
         this.activePointerId = null;
 
         this._bindHandwritingEvents(canvas);
@@ -992,12 +991,12 @@ const app = {
             };
         };
 
-        const smooth = (prev, curr, a = 0.7) => ({
-            x: prev.x * a + curr.x * (1 - a),
-            y: prev.y * a + curr.y * (1 - a)
+        const smooth = (p, c, a = 0.75) => ({
+            x: p.x * a + c.x * (1 - a),
+            y: p.y * a + c.y * (1 - a)
         });
 
-        let lastTime = Date.now();
+        let lastTime = 0;
 
         const start = (e) => {
             e.preventDefault();
@@ -1011,11 +1010,11 @@ const app = {
 
             this.hwCurrentStroke = {
                 points: [pos],
-                widths: [0.6, 0.6]
+                widths: [0.6]   // ✔ 不再双点，避免“圆球起笔”
             };
 
             this.hwStrokes.push(this.hwCurrentStroke);
-            lastTime = Date.now();
+            lastTime = performance.now();
         };
 
         const move = (e) => {
@@ -1024,7 +1023,7 @@ const app = {
 
             e.preventDefault();
 
-            const now = Date.now();
+            const now = performance.now();
             const raw = getPos(e);
 
             const stroke = this.hwCurrentStroke;
@@ -1037,25 +1036,26 @@ const app = {
                 const dx = pos.x - last.x;
                 const dy = pos.y - last.y;
                 dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 0.5) return;
+                if (dist < 0.6) return;
             }
 
             stroke.points.push(pos);
 
-            const maxW = 2.2;
-            const minW = 0.2;
+            // ===== ✔ 更稳定细线 =====
+            const maxW = 2.0;
+            const minW = 0.25;
 
-            let width = 1.5;
+            let width = 1.2;
 
             if (last) {
-                const dt = now - lastTime || 1;
+                const dt = now - lastTime || 16;
                 const speed = dist / dt;
 
-                width = maxW / (speed + 1.3);
+                width = maxW / (speed + 1.4);
                 width = Math.max(minW, Math.min(maxW, width));
 
                 const lastW = stroke.widths[stroke.widths.length - 1];
-                width = lastW * 0.65 + width * 0.35;
+                width = lastW * 0.7 + width * 0.3;
             }
 
             stroke.widths.push(width);
@@ -1064,7 +1064,6 @@ const app = {
 
         const end = (e) => {
             if (e.pointerId !== this.activePointerId) return;
-
             this.hwCurrentStroke = null;
             this.activePointerId = null;
         };
@@ -1097,12 +1096,6 @@ const app = {
 
         if (pts.length < 2) return;
 
-        const getW = (i, t) => {
-            const w0 = ws[i - 1] || 1;
-            const w1 = ws[i] || 1;
-            return w0 * (1 - t) + w1 * t;
-        };
-
         for (let i = 1; i < pts.length; i++) {
             const p0 = pts[i - 1];
             const p1 = pts[i];
@@ -1111,7 +1104,7 @@ const app = {
             const dy = p1.y - p0.y;
 
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const steps = Math.max(1, Math.floor(dist / 0.5));
+            const steps = Math.max(2, Math.floor(dist / 0.4)); // ✔ 更密防尖刺
 
             for (let j = 0; j <= steps; j++) {
                 const t = j / steps;
@@ -1119,16 +1112,38 @@ const app = {
                 const x = p0.x + dx * t;
                 const y = p0.y + dy * t;
 
-                let w = getW(i, t);
-
-                const fade = Math.min(1, i / 3);
-                w *= fade;
+                const w0 = ws[i - 1] || 0.5;
+                const w1 = ws[i] || 0.5;
+                let w = w0 * (1 - t) + w1 * t;
 
                 ctx.beginPath();
                 ctx.arc(x, y, w, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
+    },
+
+    
+    hwClear() {
+        const canvas = document.getElementById('handwritingCanvas');
+        this.hwCtx.clearRect(0, 0, canvas.width, canvas.height);
+        this.hwStrokes = [];
+    },
+
+    hwUndo() {
+        if (this.hwStrokes.length === 0) return;
+        this.hwStrokes.pop();
+        const canvas = document.getElementById('handwritingCanvas');
+        this.hwCtx.clearRect(0, 0, canvas.width, canvas.height);
+        this.hwStrokes.forEach(stroke => {
+            if (stroke.length === 0) return;
+            this.hwCtx.beginPath();
+            this.hwCtx.moveTo(stroke[0].x, stroke[0].y);
+            for (let i = 1; i < stroke.length; i++) {
+                this.hwCtx.lineTo(stroke[i].x, stroke[i].y);
+            }
+            this.hwCtx.stroke();
+        });
     },
 
     hwClose() {
