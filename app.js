@@ -977,9 +977,12 @@ const app = {
         this.hwStrokes = [];
         this.hwCurrentStroke = null;
 
+        this.activePointerId = null;
+
         this._bindHandwritingEvents(canvas);
         this._startRenderLoop(canvas);
     },
+
     _bindHandwritingEvents(canvas) {
         const getPos = (e) => {
             const rect = canvas.getBoundingClientRect();
@@ -999,12 +1002,16 @@ const app = {
         const start = (e) => {
             e.preventDefault();
 
+            if (this.activePointerId !== null) return;
+            this.activePointerId = e.pointerId;
+
+            canvas.setPointerCapture(e.pointerId);
+
             const pos = getPos(e);
 
-            // ✅ 起笔不要极细（关键修复）
             this.hwCurrentStroke = {
                 points: [pos],
-                widths: [0.8, 0.8]
+                widths: [0.6, 0.6]
             };
 
             this.hwStrokes.push(this.hwCurrentStroke);
@@ -1013,6 +1020,8 @@ const app = {
 
         const move = (e) => {
             if (!this.hwCurrentStroke) return;
+            if (e.pointerId !== this.activePointerId) return;
+
             e.preventDefault();
 
             const now = Date.now();
@@ -1033,29 +1042,31 @@ const app = {
 
             stroke.points.push(pos);
 
-            // ===== 粗细控制 =====
-            const maxW = 3;
-            const minW = 0.3;
+            const maxW = 2.2;
+            const minW = 0.2;
 
-            let width = 2;
+            let width = 1.5;
 
             if (last) {
                 const dt = now - lastTime || 1;
                 const speed = dist / dt;
 
-                width = maxW / (speed + 1.2);
+                width = maxW / (speed + 1.3);
                 width = Math.max(minW, Math.min(maxW, width));
 
                 const lastW = stroke.widths[stroke.widths.length - 1];
-                width = lastW * 0.7 + width * 0.3;
+                width = lastW * 0.65 + width * 0.35;
             }
 
             stroke.widths.push(width);
             lastTime = now;
         };
 
-        const end = () => {
+        const end = (e) => {
+            if (e.pointerId !== this.activePointerId) return;
+
             this.hwCurrentStroke = null;
+            this.activePointerId = null;
         };
 
         canvas.onpointerdown = start;
@@ -1063,6 +1074,7 @@ const app = {
         canvas.onpointerup = end;
         canvas.onpointerleave = end;
     },
+
     _startRenderLoop(canvas) {
         const ctx = this.hwCtx;
 
@@ -1078,27 +1090,22 @@ const app = {
 
         render();
     },
+
     _drawStroke(ctx, stroke) {
         const pts = stroke.points;
         const ws = stroke.widths;
 
         if (pts.length < 2) return;
 
-        // ===== ⭐ 起点柔化（核心修复）=====
-        const start = pts[0];
-        const startW = ws[0] || 1;
+        const getW = (i, t) => {
+            const w0 = ws[i - 1] || 1;
+            const w1 = ws[i] || 1;
+            return w0 * (1 - t) + w1 * t;
+        };
 
-        ctx.beginPath();
-        ctx.arc(start.x, start.y, startW, 0, Math.PI * 2);
-        ctx.fill();
-
-        // ===== 主体绘制 =====
-        for (let i = 2; i < pts.length; i++) {
+        for (let i = 1; i < pts.length; i++) {
             const p0 = pts[i - 1];
             const p1 = pts[i];
-
-            const w0 = ws[i - 1] || 2;
-            const w1 = ws[i] || 2;
 
             const dx = p1.x - p0.x;
             const dy = p1.y - p0.y;
@@ -1111,21 +1118,17 @@ const app = {
 
                 const x = p0.x + dx * t;
                 const y = p0.y + dy * t;
-                const w = w0 * (1 - t) + w1 * t;
+
+                let w = getW(i, t);
+
+                const fade = Math.min(1, i / 3);
+                w *= fade;
 
                 ctx.beginPath();
                 ctx.arc(x, y, w, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
-
-        // ===== 收尾 =====
-        const last = pts[pts.length - 1];
-        const lastW = ws[ws.length - 1] || 2;
-
-        ctx.beginPath();
-        ctx.arc(last.x, last.y, lastW, 0, Math.PI * 2);
-        ctx.fill();
     },
 
     hwClose() {
