@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>速算练习</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body> 
+    <div class="container">
+        <div class="scrollable" id="mainContent">
+            <div class="header-row" id="headerRow">
+                <button class="back-btn hidden" id="backBtn" onclick="app.backToStart()" title="返回">←</button>
+                <h1 id="pageTitle">速算练习</h1>
+                <button class="theme-toggle" id="themeBtn" onclick="app.toggleTheme()" title="切换主题">☀️</button>
+            </div>
+            <p class="subtitle" id="subtitleText">乘法进位强化</p>
+
+            <!-- 开始界面 -->
+            <div id="startScreen" class="start-screen">
+                <p id="startDesc">
+                    所有题目均为<strong>有进位</strong>的乘法题目，<br>
+                    帮助你强化速算中最容易出错的环节。
+                </p>
+
+                <div class="settings" style="margin-top:0; padding-top:0; border-top:none; margin-bottom:16px;">
+                    <div class="settings-title">选择题型</div>
+                    <div class="toggle-group" id="modeGroup">
+                        <div class="mode-section-title">基础计算能力</div>
+                        <button class="toggle-btn active" onclick="app.selectMode(this, 'two')">两位数×一位数</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'three')">三位数×一位数</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'div1')">三位数÷一位数</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'div2')">三位数÷两位数</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'sum')">多数相加</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'pctConvert')">百化分</button>
+                        <div class="mode-section-title">资料分析能力</div>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'ratio')">比重估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'multiple')">倍数估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'basePeriod')">基期估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'increment')">增量估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'incrementCompare')">增量大小比较</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'baseRatio')">基期比重估算</button>
+                        <button class="toggle-btn" onclick="app.selectMode(this, 'mixedGrowth')">混合增长率</button>
+                    </div>
+                </div>
+
+                <div class="settings" style="margin-top:0; padding-top:0; border-top:none; margin-bottom:16px;">
+                    <div class="settings-title">选择题量</div>
+                    <div class="toggle-group" id="questionCountGroup">
+                        <button class="toggle-btn active" onclick="app.selectCount(this, 10)">10道</button>
+                        <button class="toggle-btn" onclick="app.selectCount(this, 15)">15道</button>
+                        <button class="toggle-btn" onclick="app.selectCount(this, 20)">20道</button>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="app.start()">开始练习</button>
+                </div>
+
+                <div class="settings" id="globalSettings">
+                    <div class="settings-title">练习说明</div>
+                    <p style="font-size:12px; color:var(--text-secondary); line-height:1.5;" id="modeDesc">
+                        个位数乘以一位数结果 <strong>&gt; 10</strong> 且 <strong>不等于整十数</strong>，总乘积 <strong>&gt; 100</strong>。<br>
+                        建议每题控制在 <strong>2 秒</strong>以内完成。
+                    </p>
+                </div>
+            </div>
+
+            <!-- 练习界面 -->
+            <div id="gameScreen" class="hidden">
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statCount">0/10</div>
+                        <div class="stat-label">进度</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value accuracy" id="statAccuracy">--</div>
+                        <div class="stat-label">正确率</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value time" id="statTotalTime">0.0s</div>
+                        <div class="stat-label">总用时</div>
+                    </div>
+                </div>
+
+                <div class="problem-area">
+                    <div class="problem" id="problem">-- × -</div>
+                    <div class="answer-row">
+                        <input
+                            type="text"
+                            class="answer-input"
+                            id="answerInput"
+                            placeholder="?"
+                            autocomplete="off"
+                            inputmode="numeric"
+                            readonly
+                        >
+                        <span class="percent-suffix hidden" id="percentSuffix">%</span>
+                        <button class="handwriting-btn" onclick="app.openHandwriting()" title="手写">✎</button>
+                    </div>
+                </div>
+
+                <div class="feedback" id="feedback"></div>
+
+                <div class="compare-buttons hidden" id="compareButtons">
+                    <button class="compare-btn func" onclick="app.restart()" title="重开">↺</button>
+                    <button class="compare-btn" onclick="app.selectCompare('>')">A > B</button>
+                    <button class="compare-btn" onclick="app.selectCompare('<')">A < B</button>
+                </div>
+            </div>
+
+            <!-- 结果界面 -->
+            <div id="resultScreen" class="result-screen hidden">
+                <div class="result-header">
+                    <h2>练习完成</h2>
+                    <p style="color:var(--text-secondary); font-size:13px;" id="resultSummary"></p>
+                    <button class="handwriting-btn result-hw-btn" onclick="app.openHandwriting()" title="手写">✎</button>
+                </div>
+
+                <div class="result-summary">
+                    <div class="stat-item">
+                        <div class="stat-value" id="resultCorrect">0</div>
+                        <div class="stat-label">正确</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="resultWrong">0</div>
+                        <div class="stat-label">错误</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value time" id="resultTotalTimeResult">0.0s</div>
+                        <div class="stat-label">总用时</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value accuracy" id="resultAccuracy">0%</div>
+                        <div class="stat-label">正确率</div>
+                    </div>
+                </div>
+
+                <table class="result-table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>题目</th>
+                            <th>正确答案</th>
+                            <th>你的答案</th>
+                            <th>用时</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultTableBody"></tbody>
+                </table>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="app.start()">再来一次</button>
+                    <button class="btn btn-secondary" onclick="app.backToStart()">返回首页</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数字键盘 -->
+        <div class="keyboard-wrapper hidden" id="keyboardWrapper">
+            <div class="drag-handle" id="dragHandle"></div>
+            <div class="num-pad" id="numPad">
+                <button class="num-btn" onclick="app.numInput('7')">7</button>
+                <button class="num-btn" onclick="app.numInput('8')">8</button>
+                <button class="num-btn" onclick="app.numInput('9')">9</button>
+                <button class="num-btn func" onclick="app.restart()" title="重开">↺</button>
+                <button class="num-btn" onclick="app.numInput('4')">4</button>
+                <button class="num-btn" onclick="app.numInput('5')">5</button>
+                <button class="num-btn" onclick="app.numInput('6')">6</button>
+                <button class="num-btn func" onclick="app.numClear()">C</button>
+                <button class="num-btn" onclick="app.numInput('1')">1</button>
+                <button class="num-btn" onclick="app.numInput('2')">2</button>
+                <button class="num-btn" onclick="app.numInput('3')">3</button>
+                <button class="num-btn func" onclick="app.numBackspace()">←</button>
+                <button class="num-btn" onclick="app.numToggleSign()">±</button>
+                <button class="num-btn" onclick="app.numInput('0')">0</button>
+                <button class="num-btn" onclick="app.numDot()">.</button>
+                <button class="num-btn submit-btn" onclick="app.submit()">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 手写涂鸦层 -->
+    <div class="handwriting-overlay" id="handwritingOverlay">
+        <canvas class="handwriting-canvas" id="handwritingCanvas"></canvas>
+        <div class="handwriting-toolbar">
+            <button class="hw-tool-btn" onclick="app.hwClear()" title="清空">🗑️</button>
+            <button class="hw-tool-btn" onclick="app.hwUndo()" title="撤销">↩️</button>
+            <button class="hw-tool-btn" onclick="app.hwClose()" title="退出">✕</button>
+        </div>
+    </div>
+
+    <!-- 增量大小比较难度弹窗 -->
+    <div class="modal-overlay" id="compareModal">
+        <div class="modal">
+            <h3>选择难度</h3>
+            <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">差距越小，难度越高</p>
+            <div class="settings" style="margin-top:0;padding-top:0;border-top:none;">
+                <div class="settings-title">增量差距范围</div>
+                <div class="toggle-group" id="compareThresholdGroup">
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 2)">1-2%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 3)">2-3%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 4)">3-4%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 5)">4-5%</button>
+                    <button class="toggle-btn active" onclick="app.selectCompareThreshold(this, 6)">5-6%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 7)">6-7%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 8)">7-8%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 9)">8-9%</button>
+                    <button class="toggle-btn" onclick="app.selectCompareThreshold(this, 10)">9-10%</button>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="app.confirmCompareSettings()">确认</button>
+                <button class="btn btn-secondary" onclick="app.closeCompareModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 多数相加设置弹窗 -->
+    <div class="modal-overlay" id="sumModal">
+        <div class="modal">
+            <h3>多数相加设置</h3>
+            <div class="settings">
+                <div class="settings-title">几个数相加</div>
+                <div class="toggle-group" id="sumCountGroup">
+                    <button class="toggle-btn active" onclick="app.selectSumCount(this, 3)">3个</button>
+                    <button class="toggle-btn" onclick="app.selectSumCount(this, 4)">4个</button>
+                    <button class="toggle-btn" onclick="app.selectSumCount(this, 5)">5个</button>
+                    <button class="toggle-btn" onclick="app.selectSumCount(this, 6)">6个</button>
+                </div>
+            </div>
+            <div class="settings">
+                <div class="settings-title">几位数</div>
+                <div class="toggle-group" id="sumDigitsGroup">
+                    <button class="toggle-btn active" onclick="app.selectSumDigits(this, 2)">2位</button>
+                    <button class="toggle-btn" onclick="app.selectSumDigits(this, 3)">3位</button>
+                    <button class="toggle-btn" onclick="app.selectSumDigits(this, 4)">4位</button>
+                    <button class="toggle-btn" onclick="app.selectSumDigits(this, 5)">5位</button>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="app.confirmSumSettings()">确认</button>
+                <button class="btn btn-secondary" onclick="app.closeSumModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

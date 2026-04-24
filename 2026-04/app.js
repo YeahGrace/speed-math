@@ -188,9 +188,7 @@ const app = {
         document.getElementById('globalSettings').classList.add('hidden');
         document.getElementById('keyboardWrapper').classList.remove('hidden');
 
-        const pageTitle = document.getElementById('pageTitle');
-        pageTitle.textContent = MODE_DESC[this.mode].title;
-        pageTitle.classList.remove('hidden');
+        document.getElementById('pageTitle').textContent = MODE_DESC[this.mode].title;
         document.getElementById('subtitleText').classList.add('hidden');
 
         this.stats = { total: 0, correct: 0 };
@@ -210,9 +208,7 @@ const app = {
         this.usedKeys.clear();
         this.sessionStartTime = performance.now();
         document.getElementById('backBtn').classList.remove('hidden');
-        const pageTitle = document.getElementById('pageTitle');
-        pageTitle.textContent = MODE_DESC[this.mode].title;
-        pageTitle.classList.remove('hidden');
+        document.getElementById('pageTitle').textContent = MODE_DESC[this.mode].title;
         document.getElementById('subtitleText').classList.add('hidden');
         this.updateStats();
         this.nextProblem();
@@ -538,7 +534,6 @@ const app = {
         this.currentProblem = this.generateProblem();
         const el = document.getElementById('problem');
 
-        // 字体大小: .problem-sum 24px (手机20px)
         if (this.mode === 'sum') {
             el.className = 'problem-sum';
             const nums = this.currentProblem.numbers;
@@ -546,27 +541,23 @@ const app = {
             el.innerHTML = nums.map((n, i) =>
                 `<div class="sum-row"><span class="sum-op">${i === lastIdx ? '+' : '&nbsp;'}</span><span class="sum-num">${n}</span></div>`
             ).join('') + '<div class="sum-divider"></div>';
-        // 字体大小: .fraction 36px
         } else if (this.mode === 'ratio' || this.mode === 'multiple') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `<div class="fraction"><div>${p.a}</div><div class="fraction-line"></div><div>${p.b}</div></div>`;
-        // 字体大小: 18px
         } else if (this.mode === 'basePeriod') {
             el.className = 'problem';
             const p = this.currentProblem;
-            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求基期</div>`;
-        // 字体大小: 18px
+            el.innerHTML = `<div class="info-problem"><div class="info-line">现期: ${p.current}，增长率: ${this._formatPercent(p.r)}</div><div class="info-action">求基期</div></div>`;
         } else if (this.mode === 'increment') {
             el.className = 'problem';
             const p = this.currentProblem;
-            el.innerHTML = `<div style="font-size:18px;letter-spacing:0;">现期: ${p.current}, 增长率: ${this._formatPercent(p.r)}</div><div style="font-size:18px;margin-top:6px;letter-spacing:0;">求增量</div>`;
-        // 字体大小: .compare-title 20px / .compare-vs 18px / .compare-side 16px / 标题行 20px
+            el.innerHTML = `<div class="info-problem"><div class="info-line">现期: ${p.current}，增长率: ${this._formatPercent(p.r)}</div><div class="info-action">求增量</div></div>`;
         } else if (this.mode === 'incrementCompare') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `
-                <div class="compare-problem" style="letter-spacing:0;">
+                <div class="compare-problem">
                     <div class="compare-side">
                         <div class="compare-title">A</div>
                         <div>现期 ${p.left.current}</div>
@@ -579,45 +570,41 @@ const app = {
                         <div>${this._formatPercent(p.right.r)}</div>
                     </div>
                 </div>
-                <div style="font-size:20px;margin-top:8px;letter-spacing:0;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <div class="info-action info-action-inline">
                     增量大小比较
                     <button class="handwriting-btn small" onclick="app.openHandwriting()" title="手写">✎</button>
                 </div>`;
-        // 字体大小: 18px / 问题 22px
         } else if (this.mode === 'baseRatio') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `
-                <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:inline-block;text-align:left;">
-                    <div>分子：现期 ${p.num.current}，${this._formatPercent(p.num.r)}</div>
-                    <div>分母：现期 ${p.den.current}，${this._formatPercent(p.den.r)}</div>
+                <div class="info-problem info-problem-left">
+                    <div class="info-line">分子：现期 ${p.num.current}，${this._formatPercent(p.num.r)}</div>
+                    <div class="info-line">分母：现期 ${p.den.current}，${this._formatPercent(p.den.r)}</div>
                 </div>
-                <div style="font-size:22px;margin-top:8px;">求基期比重</div>`;
-        // 字体大小: 18px / 问题 22px
+                <div class="info-action">求基期比重</div>`;
         } else if (this.mode === 'mixedGrowth') {
             el.className = 'problem';
             const p = this.currentProblem;
             if (p.subType === 'A') {
                 el.innerHTML = `
-                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:inline-block;text-align:left;">
-                        <div>整体：现期 ${p.total}，${this._formatPercent(p.rTotal)}</div>
-                        <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
+                    <div class="info-problem info-problem-left">
+                        <div class="info-line">整体：现期 ${p.total}，${this._formatPercent(p.rTotal)}</div>
+                        <div class="info-line">部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
                     </div>
-                    <div style="font-size:22px;margin-top:8px;">求部分B增长率</div>`;
+                    <div class="info-action">求部分B增长率</div>`;
             } else {
                 el.innerHTML = `
-                    <div style="font-size:18px;line-height:1.8;letter-spacing:0;display:inline-block;text-align:left;">
-                        <div>部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
-                        <div>部分B：现期 ${p.partB}，${this._formatPercent(p.rB)}</div>
+                    <div class="info-problem info-problem-left">
+                        <div class="info-line">部分A：现期 ${p.partA}，${this._formatPercent(p.rA)}</div>
+                        <div class="info-line">部分B：现期 ${p.partB}，${this._formatPercent(p.rB)}</div>
                     </div>
-                    <div style="font-size:22px;margin-top:8px;">求整体增长率</div>`;
+                    <div class="info-action">求整体增长率</div>`;
             }
-        // 字体大小: .fraction 36px
         } else if (this.mode === 'pctConvert') {
             el.className = 'problem';
             const p = this.currentProblem;
             el.innerHTML = `<div class="fraction"><div>100%</div><div class="fraction-line"></div><div>${p.r.toFixed(1)}%</div></div>`;
-        // 字体大小: .problem 48px (手机32px)
         } else {
             el.className = 'problem';
             el.textContent = `${this.currentProblem.a} ${this.currentProblem.op || '×'} ${this.currentProblem.b}`;
@@ -753,9 +740,7 @@ const app = {
             this.mode === 'baseRatio' || this.mode === 'mixedGrowth' ||
             this.mode === 'pctConvert') {
             const err = Math.abs(userAnswer - answer) / Math.abs(answer);
-            let threshold = 0.03;
-            if (this.mode === 'div1') threshold = 0.01;
-            else if (this.mode === 'pctConvert') threshold = 0.02;
+            const threshold = (this.mode === 'div1') ? 0.01 : 0.03;
             correct = err < threshold;
         } else {
             correct = Math.abs(userAnswer - answer) < 0.0001;
@@ -839,9 +824,7 @@ const app = {
         document.getElementById('keyboardWrapper').classList.add('hidden');
         document.getElementById('compareButtons').classList.add('hidden');
         document.getElementById('answerInput').closest('.answer-row').classList.remove('hidden');
-        const pageTitle = document.getElementById('pageTitle');
-        pageTitle.textContent = '练习完成';
-        pageTitle.classList.remove('hidden');
+        document.getElementById('pageTitle').classList.add('hidden');
         document.getElementById('subtitleText').classList.add('hidden');
 
         const totalTimeSec = (performance.now() - this.sessionStartTime) / 1000;
@@ -897,235 +880,81 @@ const app = {
     },
 
     // 手写涂鸦
-    // openHandwriting() {
-    //     const overlay = document.getElementById('handwritingOverlay');
-    //     const canvas = document.getElementById('handwritingCanvas');
-    //     overlay.classList.add('active');
-    //     document.getElementById('keyboardWrapper').classList.add('hidden');
-    //     canvas.width = window.innerWidth;
-    //     canvas.height = window.innerHeight;
-    //     this.hwCtx = canvas.getContext('2d');
-    //     this.hwCtx.lineCap = 'round';
-    //     this.hwCtx.lineJoin = 'round';
-    //     this.hwCtx.lineWidth = 3;
-    //     this.hwCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#1a1a2e';
-    //     this.hwStrokes = [];
-    //     this._bindHandwritingEvents(canvas);
-    // },
-
-    // _bindHandwritingEvents(canvas) {
-    //     const getPos = (e) => {
-    //         const rect = canvas.getBoundingClientRect();
-    //         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    //         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    //         return { x: clientX - rect.left, y: clientY - rect.top };
-    //     };
-
-    //     const start = (e) => {
-    //         e.preventDefault();
-    //         const pos = getPos(e);
-    //         this.hwCurrentStroke = [pos];
-    //         this.hwStrokes.push(this.hwCurrentStroke);
-    //         this.hwCtx.beginPath();
-    //         this.hwCtx.moveTo(pos.x, pos.y);
-    //     };
-
-    //     const move = (e) => {
-    //         e.preventDefault();
-    //         if (!this.hwCurrentStroke) return;
-    //         const pos = getPos(e);
-    //         this.hwCurrentStroke.push(pos);
-    //         this.hwCtx.lineTo(pos.x, pos.y);
-    //         this.hwCtx.stroke();
-    //     };
-
-    //     const end = (e) => {
-    //         e.preventDefault();
-    //         this.hwCurrentStroke = null;
-    //     };
-
-    //     canvas.ontouchstart = start;
-    //     canvas.ontouchmove = move;
-    //     canvas.ontouchend = end;
-    //     canvas.onmousedown = start;
-    //     canvas.onmousemove = move;
-    //     canvas.onmouseup = end;
-    // },
     openHandwriting() {
         const overlay = document.getElementById('handwritingOverlay');
         const canvas = document.getElementById('handwritingCanvas');
-
         overlay.classList.add('active');
         document.getElementById('keyboardWrapper').classList.add('hidden');
-
-        const dpr = window.devicePixelRatio || 1;
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-
-        canvas.width = w * dpr;
-        canvas.height = h * dpr;
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
-
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
         this.hwCtx = canvas.getContext('2d');
-        this.hwCtx.scale(dpr, dpr);
-
-        this.hwCtx.fillStyle =
-            getComputedStyle(document.documentElement)
-                .getPropertyValue('--text').trim() || '#fff';
-
+        this.hwCtx.lineCap = 'round';
+        this.hwCtx.lineJoin = 'round';
+        this.hwCtx.lineWidth = 3;
+        this.hwCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#1a1a2e';
         this.hwStrokes = [];
-        this.hwCurrentStroke = null;
-
         this._bindHandwritingEvents(canvas);
-        this._startRenderLoop(canvas);
     },
+
     _bindHandwritingEvents(canvas) {
         const getPos = (e) => {
             const rect = canvas.getBoundingClientRect();
-            return {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-            };
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
         };
-
-        const smooth = (prev, curr, a = 0.7) => ({
-            x: prev.x * a + curr.x * (1 - a),
-            y: prev.y * a + curr.y * (1 - a)
-        });
-
-        let lastTime = Date.now();
 
         const start = (e) => {
             e.preventDefault();
-
             const pos = getPos(e);
-
-            // ✅ 起笔不要极细（关键修复）
-            this.hwCurrentStroke = {
-                points: [pos],
-                widths: [0.8, 0.8]
-            };
-
+            this.hwCurrentStroke = [pos];
             this.hwStrokes.push(this.hwCurrentStroke);
-            lastTime = Date.now();
+            this.hwCtx.beginPath();
+            this.hwCtx.moveTo(pos.x, pos.y);
         };
 
         const move = (e) => {
-            if (!this.hwCurrentStroke) return;
             e.preventDefault();
-
-            const now = Date.now();
-            const raw = getPos(e);
-
-            const stroke = this.hwCurrentStroke;
-            const last = stroke.points[stroke.points.length - 1];
-
-            const pos = last ? smooth(last, raw) : raw;
-
-            let dist = 0;
-            if (last) {
-                const dx = pos.x - last.x;
-                const dy = pos.y - last.y;
-                dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 0.5) return;
-            }
-
-            stroke.points.push(pos);
-
-            // ===== 粗细控制 =====
-            const maxW = 3;
-            const minW = 0.3;
-
-            let width = 2;
-
-            if (last) {
-                const dt = now - lastTime || 1;
-                const speed = dist / dt;
-
-                width = maxW / (speed + 1.2);
-                width = Math.max(minW, Math.min(maxW, width));
-
-                const lastW = stroke.widths[stroke.widths.length - 1];
-                width = lastW * 0.7 + width * 0.3;
-            }
-
-            stroke.widths.push(width);
-            lastTime = now;
+            if (!this.hwCurrentStroke) return;
+            const pos = getPos(e);
+            this.hwCurrentStroke.push(pos);
+            this.hwCtx.lineTo(pos.x, pos.y);
+            this.hwCtx.stroke();
         };
 
-        const end = () => {
+        const end = (e) => {
+            e.preventDefault();
             this.hwCurrentStroke = null;
         };
 
-        canvas.onpointerdown = start;
-        canvas.onpointermove = move;
-        canvas.onpointerup = end;
-        canvas.onpointerleave = end;
+        canvas.ontouchstart = start;
+        canvas.ontouchmove = move;
+        canvas.ontouchend = end;
+        canvas.onmousedown = start;
+        canvas.onmousemove = move;
+        canvas.onmouseup = end;
     },
-    _startRenderLoop(canvas) {
-        const ctx = this.hwCtx;
 
-        const render = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (const stroke of this.hwStrokes) {
-                this._drawStroke(ctx, stroke);
-            }
-
-            requestAnimationFrame(render);
-        };
-
-        render();
+    hwClear() {
+        const canvas = document.getElementById('handwritingCanvas');
+        this.hwCtx.clearRect(0, 0, canvas.width, canvas.height);
+        this.hwStrokes = [];
     },
-    _drawStroke(ctx, stroke) {
-        const pts = stroke.points;
-        const ws = stroke.widths;
 
-        if (pts.length < 2) return;
-
-        // ===== ⭐ 起点柔化（核心修复）=====
-        const start = pts[0];
-        const startW = ws[0] || 1;
-
-        ctx.beginPath();
-        ctx.arc(start.x, start.y, startW, 0, Math.PI * 2);
-        ctx.fill();
-
-        // ===== 主体绘制 =====
-        for (let i = 2; i < pts.length; i++) {
-            const p0 = pts[i - 1];
-            const p1 = pts[i];
-
-            const w0 = ws[i - 1] || 2;
-            const w1 = ws[i] || 2;
-
-            const dx = p1.x - p0.x;
-            const dy = p1.y - p0.y;
-
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const steps = Math.max(1, Math.floor(dist / 0.5));
-
-            for (let j = 0; j <= steps; j++) {
-                const t = j / steps;
-
-                const x = p0.x + dx * t;
-                const y = p0.y + dy * t;
-                const w = w0 * (1 - t) + w1 * t;
-
-                ctx.beginPath();
-                ctx.arc(x, y, w, 0, Math.PI * 2);
-                ctx.fill();
+    hwUndo() {
+        if (this.hwStrokes.length === 0) return;
+        this.hwStrokes.pop();
+        const canvas = document.getElementById('handwritingCanvas');
+        this.hwCtx.clearRect(0, 0, canvas.width, canvas.height);
+        this.hwStrokes.forEach(stroke => {
+            if (stroke.length === 0) return;
+            this.hwCtx.beginPath();
+            this.hwCtx.moveTo(stroke[0].x, stroke[0].y);
+            for (let i = 1; i < stroke.length; i++) {
+                this.hwCtx.lineTo(stroke[i].x, stroke[i].y);
             }
-        }
-
-        // ===== 收尾 =====
-        const last = pts[pts.length - 1];
-        const lastW = ws[ws.length - 1] || 2;
-
-        ctx.beginPath();
-        ctx.arc(last.x, last.y, lastW, 0, Math.PI * 2);
-        ctx.fill();
+            this.hwCtx.stroke();
+        });
     },
 
     hwClose() {
@@ -1188,56 +1017,7 @@ const app = {
         handle.addEventListener('mousedown', onStart);
         handle.addEventListener('touchstart', onStart, { passive: false });
     },
-
-    initFloatingHwDrag() {
-        const btn = document.getElementById('floatingHwBtn');
-        if (!btn) return;
-        let startX = 0, startY = 0, startRight = 0, startBottom = 0;
-        let isDragging = false;
-
-        const onStart = (e) => {
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            startX = clientX;
-            startY = clientY;
-            isDragging = false;
-            const style = getComputedStyle(btn);
-            startRight = parseFloat(style.right) || 16;
-            startBottom = parseFloat(style.bottom) || 80;
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onEnd);
-            document.addEventListener('touchmove', onMove, { passive: true });
-            document.addEventListener('touchend', onEnd);
-        };
-
-        const onMove = (e) => {
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const deltaX = clientX - startX;
-            const deltaY = clientY - startY;
-            if (!isDragging && (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4)) {
-                isDragging = true;
-            }
-            if (!isDragging) return;
-            if (e.cancelable) e.preventDefault();
-            const newRight = Math.max(0, Math.min(window.innerWidth - btn.offsetWidth, startRight - deltaX));
-            const newBottom = Math.max(0, Math.min(window.innerHeight - btn.offsetHeight, startBottom - deltaY));
-            btn.style.right = newRight + 'px';
-            btn.style.bottom = newBottom + 'px';
-        };
-
-        const onEnd = () => {
-            document.removeEventListener('mousemove', onMove);
-            document.removeEventListener('mouseup', onEnd);
-            document.removeEventListener('touchmove', onMove);
-            document.removeEventListener('touchend', onEnd);
-        };
-
-        btn.addEventListener('mousedown', onStart);
-        btn.addEventListener('touchstart', onStart, { passive: true });
-    },
 };
 
 app.initTheme();
 app.initKeyboardResize();
-app.initFloatingHwDrag();
